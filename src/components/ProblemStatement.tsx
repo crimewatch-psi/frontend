@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, Carousel } from "@/components/ui/cards-carousel";
 import { HeatmapPointer } from "./ui/heatmap-pointer";
 import Image from "next/image";
+import { Badge } from "./ui/badge";
 
 export function ProblemStatement() {
   const CriminalData = ({
@@ -28,15 +29,6 @@ export function ProblemStatement() {
                 </span>{" "}
                 {description}
               </p>
-              <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center mt-6">
-                <Image
-                  src={"/background.webp"}
-                  alt={type}
-                  width={500}
-                  height={500}
-                  className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center mt-6"
-                />
-              </div>
             </div>
           );
         })}
@@ -117,9 +109,19 @@ export function ProblemStatement() {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-4">
+          <Badge variant="outline" className="mb-4 text-black border-black">
+            Problem Statement
+          </Badge>
+          <h2 className="text-4xl md:text-5xl font-bold text-black mb-4">
             What Is Actually The Problem?
           </h2>
+          <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+            Based on BPS data (2021-2023), crime cases in tourist destination
+            areas have increased by 23%, highlighting the urgent need for an
+            effective security management system. CrimeWatch addresses this
+            challenge by providing a comprehensive platform for security
+            information management and strategic decision-making.
+          </p>
 
           <Carousel items={cards} initialScroll={1} />
         </div>
