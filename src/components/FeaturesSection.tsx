@@ -94,7 +94,7 @@ export function FeaturesSection() {
         </div>
 
         {/* Enhanced CTA Section */}
-        <div className="mt-20">
+        <div className="mt-20 mb-16">
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8 md:p-12 text-center border-2 border-gray-200">
             <Badge variant="outline" className="mb-4 text-black border-black">
               Restricted Access
@@ -114,7 +114,12 @@ export function FeaturesSection() {
                 className="bg-black text-white hover:bg-gray-800 px-8 w-full max-w-md"
                 asChild
               >
-                <Link href="/register">Request Account Access</Link>
+                <Link
+                  href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access"
+                  target="_blank"
+                >
+                  Request Account Access
+                </Link>
               </Button>
             </div>
 

@@ -152,7 +152,9 @@ export function Header() {
                   asChild
                   className="bg-black hover:bg-gray-800 text-white"
                 >
-                  <Link href="/register">Request Account</Link>
+                  <Link href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access">
+                    Request Account
+                  </Link>
                 </Button>
               </div>
             )}
@@ -236,7 +238,10 @@ export function Header() {
                     asChild
                     className="w-full bg-black hover:bg-gray-800 text-white"
                   >
-                    <Link href="/register" onClick={() => setIsMenuOpen(false)}>
+                    <Link
+                      href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
                       Request Account
                     </Link>
                   </Button>

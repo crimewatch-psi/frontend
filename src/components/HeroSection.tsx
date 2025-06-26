@@ -26,8 +26,8 @@ export function HeroSection() {
             </div>
 
             <TextGenerateEffect
-              words="Empowering tourist destinations with AI-driven security management and analytics"
-              className="text-2xl md:text-4xl lg:text-5xl text-black max-w-full text-center lg:text-left font-bold leading-tight"
+              words="Empowering Tourist Destinations with AI-Driven Security Management and Analytics"
+              className="text-4xl md:text-4xl lg:text-5xl text-black max-w-full text-center lg:text-left font-bold leading-tight"
             />
 
             <p className="text-gray-600 text-lg max-w-xl text-center lg:text-left">

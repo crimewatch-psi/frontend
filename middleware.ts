@@ -3,14 +3,22 @@ import { verify } from "jsonwebtoken";
 
 // Define user roles
 export enum UserRole {
+  ADMIN = "admin",
   PEMERINTAH = "pemerintah",
   POLRI = "polri",
   MANAJER_WISATA = "manajer_wisata",
   REGULAR_USER = "regular_user",
 }
 
-// Define route permissions for each role
 const rolePermissions = {
+  [UserRole.ADMIN]: [
+    "/",
+    "/admin",
+    "/admin/users",
+    "/admin/dashboard",
+    "/dashboard",
+    "/profile",
+  ],
   [UserRole.PEMERINTAH]: [
     "/",
     "/dashboard",
@@ -72,7 +80,7 @@ function hasPermission(userRole: UserRole, pathname: string): boolean {
   }
 
   // Check if it's a dynamic route or subdirectory
-  return allowedRoutes.some((route) => {
+  return allowedRoutes.some((route: string) => {
     if (route.endsWith("/*")) {
       return pathname.startsWith(route.slice(0, -2));
     }
@@ -113,13 +121,18 @@ export function middleware(request: NextRequest) {
 
   // Check permissions
   if (!hasPermission(user.role, pathname)) {
-    // Unauthorized access
-    if (user.role === UserRole.REGULAR_USER) {
-      // Regular users can only access landing page
-      return NextResponse.redirect(new URL("/", request.url));
-    } else {
-      // Other roles get redirected to their dashboard
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+    // Unauthorized access - redirect to appropriate dashboard
+    switch (user.role) {
+      case UserRole.ADMIN:
+        return NextResponse.redirect(new URL("/admin", request.url));
+      case UserRole.REGULAR_USER:
+        return NextResponse.redirect(new URL("/", request.url));
+      case UserRole.PEMERINTAH:
+      case UserRole.POLRI:
+      case UserRole.MANAJER_WISATA:
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      default:
+        return NextResponse.redirect(new URL("/", request.url));
     }
   }
 

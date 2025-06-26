@@ -71,10 +71,19 @@ export function isRegularUser(user: User | null): boolean {
 }
 
 /**
+ * Check if user is admin (full system access)
+ */
+export function isAdmin(user: User | null): boolean {
+  return hasRole(user, UserRole.ADMIN);
+}
+
+/**
  * Get user's dashboard URL based on role
  */
 export function getDashboardUrl(role: UserRole): string {
   switch (role) {
+    case UserRole.ADMIN:
+      return "/admin";
     case UserRole.REGULAR_USER:
       return "/";
     case UserRole.PEMERINTAH:
@@ -92,6 +101,15 @@ export function getDashboardUrl(role: UserRole): string {
  */
 export function getAllowedRoutes(role: UserRole): string[] {
   switch (role) {
+    case UserRole.ADMIN:
+      return [
+        "/",
+        "/admin",
+        "/admin/users",
+        "/admin/dashboard",
+        "/dashboard",
+        "/profile",
+      ];
     case UserRole.PEMERINTAH:
     case UserRole.POLRI:
       return ["/", "/dashboard", "/input-data", "/crime-data", "/profile"];
