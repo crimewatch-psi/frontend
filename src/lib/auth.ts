@@ -1,5 +1,12 @@
 import { headers } from "next/headers";
-import { UserRole } from "../../middleware";
+
+export enum UserRole {
+  ADMIN = "admin",
+  PEMERINTAH = "pemerintah",
+  POLRI = "polri",
+  MANAJER_WISATA = "manajer_wisata",
+  REGULAR_USER = "regular_user",
+}
 
 export interface User {
   id: string;
