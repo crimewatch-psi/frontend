@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { authApi, handleApiError, LoginCredentials } from "@/lib/api";
 
-export default function LoginPage() {
+function LoginForm() {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
@@ -44,10 +44,8 @@ export default function LoginPage() {
       const data = await authApi.login(loginData);
 
       if (data.success) {
-        // Set auth cookie
         document.cookie = `auth-token=${data.token}; path=/; max-age=86400; secure; samesite=strict`;
 
-        // Redirect based on role
         switch (credentials.role) {
           case "admin":
             router.push("/admin");
@@ -185,5 +183,22 @@ export default function LoginPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

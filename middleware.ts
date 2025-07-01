@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verify } from "jsonwebtoken";
 
 // Define user roles
 export enum UserRole {
@@ -54,20 +53,22 @@ const publicRoutes = [
   "/api/auth/register",
 ];
 
-// Extract user info from JWT token
+// Extract user info from mock token
 function getUserFromToken(
   token: string
 ): { role: UserRole; userId: string } | null {
-  try {
-    const secret = process.env.JWT_SECRET || "your-secret-key";
-    const decoded = verify(token, secret) as any;
+  // For mock authentication, we'll use a simple token format
+  // In a real app, this would be proper JWT verification
+  if (token.startsWith("mock-jwt-token-")) {
+    // Mock logic - in a real app you'd decode the JWT
+    // For demo, we'll assume admin if token exists
+    // You can expand this logic based on your needs
     return {
-      role: decoded.role,
-      userId: decoded.userId,
+      role: UserRole.ADMIN, // Default to admin for demo
+      userId: "demo-user-id",
     };
-  } catch (error) {
-    return null;
   }
+  return null;
 }
 
 // Check if user has permission to access route

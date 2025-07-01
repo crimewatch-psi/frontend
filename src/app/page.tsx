@@ -2,6 +2,7 @@
 
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
+import { PublicAccessSection } from "@/components/PublicAccessSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { ProblemStatement } from "@/components/ProblemStatement";
 import { Footer } from "@/components/Footer";
@@ -11,6 +12,7 @@ export default function Home() {
     <div className="min-h-screen bg-white mt-4">
       <Header />
       <HeroSection />
+      <PublicAccessSection />
       <ProblemStatement />
       <FeaturesSection />
 
