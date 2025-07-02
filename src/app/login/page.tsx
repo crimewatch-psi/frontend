@@ -120,31 +120,6 @@ function LoginForm() {
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="role"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Role
-            </label>
-            <Select
-              value={credentials.role}
-              onValueChange={(value) =>
-                setCredentials({ ...credentials, role: value })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">Administrator</SelectItem>
-                <SelectItem value="pemerintah">Government</SelectItem>
-                <SelectItem value="polri">Police</SelectItem>
-                <SelectItem value="manajer_wisata">Tourism Manager</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {error && (
             <div className="text-red-600 text-sm text-center">{error}</div>
           )}
@@ -169,18 +144,6 @@ function LoginForm() {
             </p>
           </div>
         </form>
-
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <div className="text-xs text-gray-500 space-y-2">
-            <p>
-              <strong>Demo Accounts:</strong>
-            </p>
-            <p>• Admin: admin@crimewatch.id / admin123</p>
-            <p>• Pemerintah: gov@example.com / password123</p>
-            <p>• Polri: police@example.com / password123</p>
-            <p>• Manajer Wisata: tourism@example.com / password123</p>
-          </div>
-        </div>
       </Card>
     </div>
   );

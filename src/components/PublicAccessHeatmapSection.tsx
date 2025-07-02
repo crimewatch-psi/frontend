@@ -308,7 +308,6 @@ export function PublicAccessHeatmapSection() {
           </p>
         </div>
 
-        {/* Region Selector */}
         <div className="flex justify-center mb-8">
           <div className="w-full max-w-xs">
             <Select value={selectedRegion} onValueChange={setSelectedRegion}>
