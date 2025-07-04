@@ -21,19 +21,19 @@ export function HeroSection() {
           <div className="flex flex-col justify-center space-y-6">
             <div className="flex justify-center lg:justify-start">
               <div className="bg-black text-white px-4 py-1 rounded-full shadow-lg font-medium text-sm md:text-base">
-                AI-Powered Information System 💫
+                Sistem Informasi Berbasis AI 💫
               </div>
             </div>
 
             <TextGenerateEffect
-              words="Empowering Tourist Destinations with AI-Driven Security Management and Analytics"
+              words="Mengoptimalkan Keamanan Destinasi Wisata dengan Manajemen dan Analitik Berbasis AI"
               className="text-4xl md:text-4xl lg:text-5xl text-black max-w-full text-center lg:text-left font-bold leading-tight"
             />
 
             <p className="text-gray-600 text-lg max-w-xl text-center lg:text-left">
-              Transform tourism security with intelligent crime mapping,
-              predictive analytics, and real-time monitoring designed for
-              destination managers and security agencies.
+              Tingkatkan keamanan pariwisata dengan pemetaan kriminalitas
+              cerdas, analisis prediktif, dan pemantauan real-time yang
+              dirancang khusus untuk pengelola destinasi dan lembaga keamanan.
             </p>
 
             <div className="flex justify-center lg:justify-start">
@@ -41,7 +41,7 @@ export function HeroSection() {
                 size="lg"
                 className="bg-black hover:bg-gray-800 text-white px-8"
               >
-                Get Started
+                Mulai Sekarang
               </Button>
             </div>
           </div>

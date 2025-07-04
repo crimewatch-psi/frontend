@@ -38,62 +38,62 @@ export function ProblemStatement() {
 
   const data = [
     {
-      category: "Yogyakarta City",
-      title: "Urban Scams in Yogyakarta City",
+      category: "Kota Yogyakarta",
+      title: "Penipuan Urban di Kota Yogyakarta",
       src: "/yogyakarta.jpeg",
       content: (
         <CriminalData
-          type="Yogyakarta City"
-          stats="38 tourist-targeted crimes reported in Q4 2024"
-          description="in Malioboro Street area alone. Recent incidents include pickpocketing near Tugu Railway Station, fake tour guide scams around Kraton Palace, and overcharging at traditional markets. Police have increased patrols around major tourist attractions."
+          type="Kota Yogyakarta"
+          stats="38 kejahatan terhadap wisatawan dilaporkan di Q4 2024"
+          description="hanya di kawasan Jalan Malioboro. Insiden terbaru termasuk pencopetan di sekitar Stasiun Tugu, penipuan pemandu wisata palsu di sekitar Keraton, dan pembengkakan harga di pasar tradisional. Polisi telah meningkatkan patroli di sekitar objek wisata utama."
         />
       ),
     },
     {
-      category: "Sleman Regency",
-      title: "Temple Theft in Sleman Regency",
+      category: "Kabupaten Sleman",
+      title: "Pencurian di Area Candi Kabupaten Sleman",
       src: "/sleman.jpg",
       content: (
         <CriminalData
-          type="Sleman Regency"
-          stats="15 cases of tourist-targeted theft in Nov 2024"
-          description="reported around Candi Prambanan and Kaliurang area. Motorcycle theft targeting rental vehicles, bag snatching incidents near temple complexes, and fake parking attendant scams have become prevalent. Local authorities have deployed additional security personnel."
+          type="Kabupaten Sleman"
+          stats="15 kasus pencurian terhadap wisatawan di Nov 2024"
+          description="dilaporkan di sekitar Candi Prambanan dan kawasan Kaliurang. Pencurian sepeda motor yang menargetkan kendaraan sewaan, insiden penjambretan tas di dekat kompleks candi, dan penipuan juru parkir palsu menjadi hal yang umum. Pihak berwenang setempat telah mengerahkan personel keamanan tambahan."
         />
       ),
     },
     {
-      category: "Bantul Regency",
-      title: "Beach Fraud in Bantul Regency",
+      category: "Kabupaten Bantul",
+      title: "Penipuan di Pantai Kabupaten Bantul",
       src: "/bantul.jpg",
       content: (
         <CriminalData
-          type="Bantul Regency"
-          stats="22 incidents affecting tourists in Dec 2024"
-          description="primarily at Parangtritis Beach and Imogiri area. Beach vendor overcharging, unauthorized tour guide activities, and vehicle break-ins at parking areas have been reported. Recent coordinated efforts between police and tourism officials aim to address these issues."
+          type="Kabupaten Bantul"
+          stats="22 insiden yang mempengaruhi wisatawan di Des 2024"
+          description="terutama di Pantai Parangtritis dan kawasan Imogiri. Pembengkakan harga pedagang pantai, aktivitas pemandu wisata tidak resmi, dan pembobolan kendaraan di area parkir telah dilaporkan. Upaya koordinasi terbaru antara polisi dan petugas pariwisata bertujuan untuk mengatasi masalah ini."
         />
       ),
     },
     {
-      category: "Kulon Progo Regency",
-      title: "Tourism Exploitation in Kulon Progo Regency",
+      category: "Kabupaten Kulon Progo",
+      title: "Eksploitasi Wisata di Kabupaten Kulon Progo",
       src: "/kulonprogo.jpg",
       content: (
         <CriminalData
-          type="Kulon Progo Regency"
-          stats="8 reported cases targeting tourists in Nov 2024"
-          description="mainly around Kalibiru Tourism Area and Waduk Sermo. Issues include inflated accommodation prices for tourists, unauthorized guide services, and minor theft incidents at popular photo spots. Tourism stakeholders are working on visitor safety protocols."
+          type="Kabupaten Kulon Progo"
+          stats="8 kasus yang menargetkan wisatawan dilaporkan di Nov 2024"
+          description="terutama di sekitar Kawasan Wisata Kalibiru dan Waduk Sermo. Masalah meliputi harga akomodasi yang melambung untuk wisatawan, layanan pemandu tidak resmi, dan insiden pencurian kecil di spot foto populer. Para pemangku kepentingan pariwisata sedang mengembangkan protokol keamanan pengunjung."
         />
       ),
     },
     {
-      category: "Gunungkidul Regency",
-      title: "Coastal Crime in Gunungkidul Regency",
+      category: "Kabupaten Gunungkidul",
+      title: "Kejahatan Pesisir di Kabupaten Gunungkidul",
       src: "/gunungkidul.jpg",
       content: (
         <CriminalData
-          type="Gunungkidul Regency"
-          stats="12 tourist-related incidents in Q4 2024"
-          description="concentrated around Baron Beach, Indrayanti Beach, and Jomblang Cave. Recent reports include equipment rental fraud, unauthorized cave guide activities, and vehicle theft at beach parking areas. Enhanced coordination between tourism police and local communities is underway."
+          type="Kabupaten Gunungkidul"
+          stats="12 insiden terkait wisatawan di Q4 2024"
+          description="terkonsentrasi di sekitar Pantai Baron, Pantai Indrayanti, dan Gua Jomblang. Laporan terbaru termasuk penipuan penyewaan peralatan, aktivitas pemandu gua tidak resmi, dan pencurian kendaraan di area parkir pantai. Peningkatan koordinasi antara polisi pariwisata dan masyarakat setempat sedang berlangsung."
         />
       ),
     },
@@ -110,17 +110,17 @@ export function ProblemStatement() {
       <div className="container mx-auto px-4 relative z-10">
         <div className="mx-auto text-center">
           <Badge variant="outline" className="mb-4 text-black border-black">
-            Problem Statement
+            Permasalahan
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold text-black mb-4">
-            What Is Actually The Problem?
+            Apa Sebenarnya Masalahnya?
           </h2>
           <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            Based on BPS data (2021-2023), crime cases in tourist destination
-            areas have increased by 23%, highlighting the urgent need for an
-            effective security management system. CrimeWatch addresses this
-            challenge by providing a comprehensive platform for security
-            information management and strategic decision-making.
+            Berdasarkan data BPS (2021-2023), kasus kejahatan di area destinasi
+            wisata telah meningkat sebesar 23%, menunjukkan kebutuhan mendesak
+            akan sistem manajemen keamanan yang efektif. CrimeWatch mengatasi
+            tantangan ini dengan menyediakan platform komprehensif untuk
+            manajemen informasi keamanan dan pengambilan keputusan strategis.
           </p>
 
           <Carousel items={cards} initialScroll={1} />

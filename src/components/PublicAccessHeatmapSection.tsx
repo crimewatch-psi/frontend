@@ -32,7 +32,7 @@ interface RegionData {
 // Mock crime data for each region
 const mockRegionData: Record<string, RegionData> = {
   yogyakarta: {
-    name: "Yogyakarta City",
+    name: "Kota Yogyakarta",
     totalCrimes: 47,
     riskLevel: "high",
     crimeData: [
@@ -40,35 +40,41 @@ const mockRegionData: Record<string, RegionData> = {
         x: 200,
         y: 150,
         intensity: 0.9,
-        type: "Theft",
-        location: "Malioboro Street",
+        type: "Pencurian",
+        location: "Jalan Malioboro",
       },
       {
         x: 180,
         y: 180,
         intensity: 0.7,
-        type: "Fraud",
-        location: "Tugu Station",
+        type: "Penipuan",
+        location: "Stasiun Tugu",
       },
       {
         x: 220,
         y: 120,
         intensity: 0.8,
-        type: "Pickpocketing",
+        type: "Copet",
         location: "Alun-alun Kidul",
       },
-      { x: 160, y: 200, intensity: 0.6, type: "Scam", location: "Jalan Sosio" },
+      {
+        x: 160,
+        y: 200,
+        intensity: 0.6,
+        type: "Penipuan",
+        location: "Jalan Sosio",
+      },
       {
         x: 240,
         y: 160,
         intensity: 0.5,
-        type: "Vehicle Theft",
-        location: "Sultan Palace Area",
+        type: "Pencurian Kendaraan",
+        location: "Kawasan Keraton",
       },
     ],
   },
   bantul: {
-    name: "Bantul Regency",
+    name: "Kabupaten Bantul",
     totalCrimes: 23,
     riskLevel: "medium",
     crimeData: [
@@ -76,28 +82,34 @@ const mockRegionData: Record<string, RegionData> = {
         x: 120,
         y: 280,
         intensity: 0.6,
-        type: "Fraud",
-        location: "Parangtritis Beach",
+        type: "Penipuan",
+        location: "Pantai Parangtritis",
       },
       {
         x: 140,
         y: 260,
         intensity: 0.4,
-        type: "Theft",
+        type: "Pencurian",
         location: "Bantul Square",
       },
-      { x: 100, y: 300, intensity: 0.5, type: "Scam", location: "Beach Area" },
+      {
+        x: 100,
+        y: 300,
+        intensity: 0.5,
+        type: "Penipuan",
+        location: "Area Pantai",
+      },
       {
         x: 160,
         y: 240,
         intensity: 0.3,
-        type: "Vehicle Theft",
-        location: "Bantul Market",
+        type: "Pencurian Kendaraan",
+        location: "Pasar Bantul",
       },
     ],
   },
   sleman: {
-    name: "Sleman Regency",
+    name: "Kabupaten Sleman",
     totalCrimes: 31,
     riskLevel: "medium",
     crimeData: [
@@ -105,58 +117,76 @@ const mockRegionData: Record<string, RegionData> = {
         x: 180,
         y: 80,
         intensity: 0.7,
-        type: "Tourism Scam",
+        type: "Penipuan Wisata",
         location: "Candi Prambanan",
       },
-      { x: 220, y: 60, intensity: 0.5, type: "Theft", location: "UGM Area" },
-      { x: 160, y: 100, intensity: 0.6, type: "Fraud", location: "Kaliurang" },
+      {
+        x: 220,
+        y: 60,
+        intensity: 0.5,
+        type: "Pencurian",
+        location: "Kawasan UGM",
+      },
+      {
+        x: 160,
+        y: 100,
+        intensity: 0.6,
+        type: "Penipuan",
+        location: "Kaliurang",
+      },
       {
         x: 200,
         y: 40,
         intensity: 0.4,
-        type: "Pickpocketing",
-        location: "Sleman Town",
+        type: "Copet",
+        location: "Kota Sleman",
       },
       {
         x: 240,
         y: 80,
         intensity: 0.3,
-        type: "Vehicle Theft",
+        type: "Pencurian Kendaraan",
         location: "Godean",
       },
     ],
   },
   kulonprogo: {
-    name: "Kulon Progo Regency",
+    name: "Kabupaten Kulon Progo",
     totalCrimes: 18,
     riskLevel: "low",
     crimeData: [
-      { x: 80, y: 180, intensity: 0.4, type: "Theft", location: "Wates Town" },
+      {
+        x: 80,
+        y: 180,
+        intensity: 0.4,
+        type: "Pencurian",
+        location: "Kota Wates",
+      },
       {
         x: 60,
         y: 200,
         intensity: 0.3,
-        type: "Fraud",
-        location: "Kulon Progo Beach",
+        type: "Penipuan",
+        location: "Pantai Kulon Progo",
       },
       {
         x: 100,
         y: 160,
         intensity: 0.2,
-        type: "Scam",
-        location: "Traditional Market",
+        type: "Penipuan",
+        location: "Pasar Tradisional",
       },
       {
         x: 40,
         y: 220,
         intensity: 0.3,
-        type: "Vehicle Theft",
-        location: "Tourism Area",
+        type: "Pencurian Kendaraan",
+        location: "Area Wisata",
       },
     ],
   },
   gunungkidul: {
-    name: "Gunung Kidul Regency",
+    name: "Kabupaten Gunung Kidul",
     totalCrimes: 15,
     riskLevel: "low",
     crimeData: [
@@ -164,29 +194,29 @@ const mockRegionData: Record<string, RegionData> = {
         x: 280,
         y: 240,
         intensity: 0.3,
-        type: "Theft",
-        location: "Wonosari Town",
+        type: "Pencurian",
+        location: "Kota Wonosari",
       },
       {
         x: 300,
         y: 220,
         intensity: 0.4,
-        type: "Tourism Scam",
-        location: "Baron Beach",
+        type: "Penipuan Wisata",
+        location: "Pantai Baron",
       },
       {
         x: 260,
         y: 260,
         intensity: 0.2,
-        type: "Fraud",
-        location: "Gunung Kidul Square",
+        type: "Penipuan",
+        location: "Alun-alun Gunung Kidul",
       },
       {
         x: 320,
         y: 200,
         intensity: 0.3,
-        type: "Vehicle Theft",
-        location: "Coastal Area",
+        type: "Pencurian Kendaraan",
+        location: "Area Pantai",
       },
     ],
   },
@@ -261,8 +291,8 @@ function CrimeHeatmap({ region }: { region: string }) {
       ))}
 
       <div className="absolute bottom-4 left-4 bg-white/90 px-3 py-2 rounded-lg text-sm">
-        <div className="font-semibold">{regionData.totalCrimes} Cases</div>
-        <div className="text-gray-600">Last 30 days</div>
+        <div className="font-semibold">{regionData.totalCrimes} Kasus</div>
+        <div className="text-gray-600">30 Hari Terakhir</div>
       </div>
 
       {/* Legend */}
@@ -270,15 +300,15 @@ function CrimeHeatmap({ region }: { region: string }) {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span>High Risk</span>
+            <span>Risiko Tinggi</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-            <span>Medium Risk</span>
+            <span>Risiko Sedang</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span>Low Risk</span>
+            <span>Risiko Rendah</span>
           </div>
         </div>
       </div>
@@ -297,14 +327,14 @@ export function PublicAccessHeatmapSection() {
         <div className="text-center mb-8">
           <Badge className="mb-4 bg-green-100 text-green-700 border-green-200">
             <Globe className="w-4 h-4 mr-2" />
-            No Login Required
+            Tanpa Perlu Login
           </Badge>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Explore Public Safety Data
+            Jelajahi Data Keamanan Publik
           </h2>
           <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
-            Access real-time crime insights and AI recommendations instantly.
-            Perfect for tourists and travelers visiting Yogyakarta.
+            Akses informasi kriminalitas dan rekomendasi AI secara instan. Cocok
+            untuk wisatawan yang berkunjung ke Yogyakarta.
           </p>
         </div>
 
@@ -315,12 +345,14 @@ export function PublicAccessHeatmapSection() {
                 <SelectValue placeholder="Select Region" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="yogyakarta">Yogyakarta City</SelectItem>
-                <SelectItem value="bantul">Bantul Regency</SelectItem>
-                <SelectItem value="sleman">Sleman Regency</SelectItem>
-                <SelectItem value="kulonprogo">Kulon Progo Regency</SelectItem>
+                <SelectItem value="yogyakarta">Kota Yogyakarta</SelectItem>
+                <SelectItem value="bantul">Kabupaten Bantul</SelectItem>
+                <SelectItem value="sleman">Kabupaten Sleman</SelectItem>
+                <SelectItem value="kulonprogo">
+                  Kabupaten Kulon Progo
+                </SelectItem>
                 <SelectItem value="gunungkidul">
-                  Gunung Kidul Regency
+                  Kabupaten Gunung Kidul
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -339,13 +371,13 @@ export function PublicAccessHeatmapSection() {
           <Button asChild size="lg" variant="default">
             <Link href="/public-heatmap">
               <MapPin className="w-5 h-5 mr-2" />
-              View Detailed Heatmap
+              Lihat Peta Detail
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg">
             <Link href="/public-ai">
               <Brain className="w-5 h-5 mr-2" />
-              Get AI Safety Tips
+              Dapatkan Tips Keamanan AI
             </Link>
           </Button>
         </div>

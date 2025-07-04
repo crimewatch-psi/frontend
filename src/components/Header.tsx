@@ -69,8 +69,8 @@ export function Header() {
   };
 
   const navLinks = [
-    { href: "/about", label: "About" },
-    { href: "/contact", label: "Contact" },
+    { href: "/about", label: "Tentang" },
+    { href: "/contact", label: "Kontak" },
   ];
 
   return (
@@ -131,7 +131,7 @@ export function Header() {
                   className="border-gray-300 hover:bg-gray-100"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  Logout
+                  Keluar
                 </Button>
               </div>
             ) : (
@@ -144,7 +144,7 @@ export function Header() {
                 >
                   <Link href="/login">
                     <User className="w-4 h-4 mr-2" />
-                    Log In
+                    Masuk
                   </Link>
                 </Button>
                 <Button
@@ -153,7 +153,7 @@ export function Header() {
                   className="bg-black hover:bg-gray-800 text-white"
                 >
                   <Link href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access">
-                    Request Account
+                    Ajukan Akun
                   </Link>
                 </Button>
               </div>
@@ -217,7 +217,7 @@ export function Header() {
                     className="w-full mx-4 border-gray-300"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
-                    Logout
+                    Keluar
                   </Button>
                 </div>
               ) : (
@@ -230,7 +230,7 @@ export function Header() {
                   >
                     <Link href="/login" onClick={() => setIsMenuOpen(false)}>
                       <User className="w-4 h-4 mr-2" />
-                      Log In
+                      Masuk
                     </Link>
                   </Button>
                   <Button
@@ -242,7 +242,7 @@ export function Header() {
                       href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Request Account
+                      Ajukan Akun
                     </Link>
                   </Button>
                 </div>
