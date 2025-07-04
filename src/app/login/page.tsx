@@ -14,7 +14,7 @@ function LoginForm() {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
-    role: "Government",
+    role: "pemerintah",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -32,30 +32,22 @@ function LoginForm() {
       const loginData: LoginCredentials = {
         email: credentials.email,
         password: credentials.password,
-        role: credentials.role,
       };
 
       const data = await authApi.login(loginData);
 
-      if (data.success) {
-        document.cookie = `auth-token=${data.token}; path=/; max-age=86400; secure; samesite=strict`;
+      if (data.message === "Login berhasil") {
+        const userRole = data.user.role.toLowerCase();
 
-        switch (credentials.role) {
-          case "admin":
-            router.push("/admin");
-            break;
-          case "pemerintah":
-          case "polri":
-            router.push("/dashboard");
-            break;
-          case "manajer_wisata":
-            router.push("/dashboard");
-            break;
-          default:
-            router.push("/");
+        if (userRole === "admin") {
+          router.push("/admin");
+        } else if (userRole === "pemerintah" || userRole === "polri") {
+          router.push("/dashboard");
+        } else if (userRole === "manajer_wisata") {
+          router.push("/dashboard");
+        } else {
+          router.push("/");
         }
-      } else {
-        setError("Login failed");
       }
     } catch (error) {
       setError(handleApiError(error));
@@ -67,12 +59,16 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <Link href="/">
-            <ArrowLeft className="w-4 h-4 mr-2" />
+        <div className="relative mb-8">
+          <Link href="/" className="absolute left-0 top-4">
+            <ArrowLeft className="w-5 h-5 text-gray-600 hover:text-black transition-colors" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">CrimeWatch Login</h1>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Masuk ke CrimeWatch
+            </h1>
+            <p className="text-gray-600 mt-2">Silakan masuk ke akun Anda</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -87,6 +83,7 @@ function LoginForm() {
               id="email"
               type="email"
               required
+              placeholder="Masukkan email Anda"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               value={credentials.email}
               onChange={(e) =>
@@ -100,12 +97,13 @@ function LoginForm() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Password
+              Kata Sandi
             </label>
             <Input
               id="password"
               type="password"
               required
+              placeholder="Masukkan kata sandi"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               value={credentials.password}
               onChange={(e) =>
@@ -123,17 +121,17 @@ function LoginForm() {
             disabled={isLoading}
             className="w-full bg-black hover:bg-gray-800 text-white py-2 px-4 rounded-md transition duration-200"
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? "Sedang Masuk..." : "Masuk"}
           </Button>
 
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Need an account?{" "}
+              Belum punya akun?{" "}
               <a
-                href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access"
+                href="mailto:admin@crimewatch.id?subject=Permintaan%20Akses%20Akun"
                 className="text-black hover:text-gray-600 underline"
               >
-                Request access here
+                Ajukan akses di sini
               </a>
             </p>
           </div>
@@ -150,7 +148,7 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+            <p className="mt-4 text-gray-600">Memuat...</p>
           </div>
         </div>
       }

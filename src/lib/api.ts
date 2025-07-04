@@ -95,22 +95,21 @@ api.interceptors.response.use(
   }
 );
 
-// Types
+export const API_BASE_URL = "http://localhost:6000/api";
+
 export interface LoginCredentials {
   email: string;
   password: string;
-  role: string;
+  role?: string;
 }
 
 export interface LoginResponse {
-  success: boolean;
-  token: string;
+  message: string;
   user: {
-    id: string;
+    id: number;
+    nama: string;
     email: string;
-    name: string;
     role: string;
-    organization: string;
   };
 }
 
@@ -160,37 +159,26 @@ export interface ApiResponse<T = any> {
 
 // Mock authentication API
 export const authApi = {
-  login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  async login(credentials: LoginCredentials): Promise<LoginResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+        credentials: "include", // This is important for session handling
+      });
 
-    const { email, password, role } = credentials;
-    const demoUser = DEMO_CREDENTIALS[email as keyof typeof DEMO_CREDENTIALS];
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Login gagal");
+      }
 
-    if (!demoUser || demoUser.password !== password || demoUser.role !== role) {
-      throw new Error("Invalid credentials");
+      return await response.json();
+    } catch (error) {
+      throw error;
     }
-
-    const user = MOCK_USERS.find((u) => u.email === email);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    // Generate a mock JWT token
-    const token = `mock-jwt-token-${Date.now()}`;
-    localStorage.setItem("demo-auth-token", token);
-
-    return {
-      success: true,
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        organization: user.organization,
-      },
-    };
   },
 
   logout: () => {
@@ -536,14 +524,14 @@ export { api };
 
 // Helper function to handle API errors
 export const handleApiError = (error: any): string => {
-  if (error.response?.data?.message) {
-    return error.response.data.message;
+  if (error.response) {
+    // Server responded with error
+    return error.response.data.error || "Terjadi kesalahan. Silakan coba lagi.";
   }
-  if (error.response?.data?.error) {
-    return error.response.data.error;
+  if (error.request) {
+    // Request made but no response
+    return "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.";
   }
-  if (error.message) {
-    return error.message;
-  }
-  return "An unexpected error occurred";
+  // Other errors
+  return "Terjadi kesalahan. Silakan coba lagi.";
 };
