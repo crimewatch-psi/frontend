@@ -30,11 +30,6 @@ export default function ApiTestPage() {
 
   // Test hooks
   const {
-    execute: testConnection,
-    loading: testingConnection,
-    error: connectionError,
-  } = useApi(authApi.testConnection);
-  const {
     execute: getUsers,
     loading: loadingUsers,
     error: usersError,
@@ -44,11 +39,6 @@ export default function ApiTestPage() {
     loading: creatingUser,
     error: createError,
   } = useApi(adminApi.createUser);
-  const {
-    execute: initializeDb,
-    loading: initializingDb,
-    error: initError,
-  } = useApi(adminApi.initializeDatabase);
 
   const {
     execute: runAsyncTest,
@@ -63,22 +53,6 @@ export default function ApiTestPage() {
     role: "pemerintah",
     organization: "",
   });
-
-  // Test database connection
-  const handleTestConnection = async () => {
-    try {
-      const result = await testConnection();
-      setTestResults((prev) => ({
-        ...prev,
-        connection: { success: true, result },
-      }));
-    } catch (error) {
-      setTestResults((prev) => ({
-        ...prev,
-        connection: { success: false, error: handleApiError(error) },
-      }));
-    }
-  };
 
   // Test user fetching
   const handleGetUsers = async () => {
@@ -132,29 +106,10 @@ export default function ApiTestPage() {
     }
   };
 
-  // Test database initialization
-  const handleInitializeDatabase = async () => {
-    try {
-      const result = await initializeDb();
-      setTestResults((prev) => ({
-        ...prev,
-        initDb: { success: true, result },
-      }));
-    } catch (error) {
-      setTestResults((prev) => ({
-        ...prev,
-        initDb: { success: false, error: handleApiError(error) },
-      }));
-    }
-  };
-
   // Test multiple operations
   const handleTestMultipleOperations = async () => {
     await runAsyncTest(async () => {
-      const operations = [
-        { name: "connection", op: () => authApi.testConnection() },
-        { name: "users", op: () => adminApi.getUsers() },
-      ];
+      const operations = [{ name: "users", op: () => adminApi.getUsers() }];
 
       const results: Record<string, any> = {};
 
@@ -211,257 +166,186 @@ export default function ApiTestPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Connection Tests */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Test API Connection */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Database className="w-5 h-5" />
-                <span>Database Connection</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                onClick={handleTestConnection}
-                disabled={testingConnection}
-                className="w-full"
-              >
-                {testingConnection ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Testing...
-                  </>
-                ) : (
-                  <>
-                    <Database className="w-4 h-4 mr-2" />
-                    Test Connection
-                  </>
-                )}
-              </Button>
-              {renderTestResult("connection", testResults.connection)}
-              {connectionError && (
-                <p className="text-red-600 text-sm">{connectionError}</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* User Management Tests */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="text-lg flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                <span>User Management</span>
+                Get Users
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                onClick={handleGetUsers}
-                disabled={loadingUsers}
-                variant="outline"
-                className="w-full"
-              >
-                {loadingUsers ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Refresh Users
-                  </>
+            <CardContent>
+              <div className="space-y-4">
+                <Button
+                  onClick={handleGetUsers}
+                  disabled={loadingUsers}
+                  className="w-full"
+                >
+                  {loadingUsers ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Get Users
+                    </>
+                  )}
+                </Button>
+                {usersError && (
+                  <div className="text-red-600 text-sm">{usersError}</div>
                 )}
-              </Button>
-              {renderTestResult("getUsers", testResults.getUsers)}
-              {usersError && (
-                <p className="text-red-600 text-sm">{usersError}</p>
-              )}
-
-              <Button
-                onClick={handleInitializeDatabase}
-                disabled={initializingDb}
-                variant="secondary"
-                className="w-full"
-              >
-                {initializingDb ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Initializing...
-                  </>
-                ) : (
-                  <>
-                    <Database className="w-4 h-4 mr-2" />
-                    Initialize Demo Data
-                  </>
+                {testResults.getUsers &&
+                  renderTestResult("getUsers", testResults.getUsers)}
+                {users.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="font-medium mb-2">Users:</h4>
+                    <div className="space-y-2">
+                      {users.map((user) => (
+                        <div
+                          key={user.id}
+                          className="text-sm p-2 bg-gray-50 rounded"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{user.email}</span>
+                            <Badge>{user.role}</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </Button>
-              {renderTestResult("initDb", testResults.initDb)}
-              {initError && <p className="text-red-600 text-sm">{initError}</p>}
+              </div>
             </CardContent>
           </Card>
 
-          {/* Create User Test */}
+          {/* Create Test User */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="text-lg flex items-center gap-2">
                 <UserPlus className="w-5 h-5" />
-                <span>Create User Test</span>
+                Create User
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  placeholder="Name"
-                  value={newUserForm.name}
-                  onChange={(e) =>
-                    setNewUserForm((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                />
-                <Input
-                  placeholder="Email"
-                  type="email"
-                  value={newUserForm.email}
-                  onChange={(e) =>
-                    setNewUserForm((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                />
-                <Input
-                  placeholder="Password"
-                  type="password"
-                  value={newUserForm.password}
-                  onChange={(e) =>
-                    setNewUserForm((prev) => ({
-                      ...prev,
-                      password: e.target.value,
-                    }))
-                  }
-                />
-                <Input
-                  placeholder="Organization"
-                  value={newUserForm.organization}
-                  onChange={(e) =>
-                    setNewUserForm((prev) => ({
-                      ...prev,
-                      organization: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <Button
-                onClick={handleCreateTestUser}
-                disabled={creatingUser}
-                className="w-full"
-              >
-                {creatingUser ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Create Test User
-                  </>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Input
+                    placeholder="Email"
+                    value={newUserForm.email}
+                    onChange={(e) =>
+                      setNewUserForm({ ...newUserForm, email: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    value={newUserForm.password}
+                    onChange={(e) =>
+                      setNewUserForm({
+                        ...newUserForm,
+                        password: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Name"
+                    value={newUserForm.name}
+                    onChange={(e) =>
+                      setNewUserForm({ ...newUserForm, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Organization"
+                    value={newUserForm.organization}
+                    onChange={(e) =>
+                      setNewUserForm({
+                        ...newUserForm,
+                        organization: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <Button
+                  onClick={handleCreateTestUser}
+                  disabled={creatingUser}
+                  className="w-full"
+                >
+                  {creatingUser ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Create User
+                    </>
+                  )}
+                </Button>
+                {createError && (
+                  <div className="text-red-600 text-sm">{createError}</div>
                 )}
-              </Button>
-              {renderTestResult("createUser", testResults.createUser)}
-              {createError && (
-                <p className="text-red-600 text-sm">{createError}</p>
-              )}
+                {testResults.createUser &&
+                  renderTestResult("createUser", testResults.createUser)}
+              </div>
             </CardContent>
           </Card>
 
           {/* Multiple Operations Test */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="text-lg flex items-center gap-2">
                 <RefreshCw className="w-5 h-5" />
-                <span>Multiple Operations</span>
+                Multiple Operations
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                onClick={handleTestMultipleOperations}
-                disabled={runningAsync}
-                variant="outline"
-                className="w-full"
-              >
-                {runningAsync ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Running Tests...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Test Multiple Operations
-                  </>
-                )}
-              </Button>
-              {testResults.multipleOperations && (
-                <div className="space-y-2">
-                  {Object.entries(testResults.multipleOperations).map(
-                    ([key, result]) => (
-                      <div key={key}>
-                        <strong className="text-sm">{key}:</strong>
-                        {renderTestResult(key, result)}
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
-              {asyncError && (
-                <p className="text-red-600 text-sm">{asyncError}</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Users Display */}
-        {users.length > 0 && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Current Users ({users.length})</CardTitle>
-            </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {users.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div>
-                      <div className="font-medium">{user.name}</div>
-                      <div className="text-sm text-gray-600">{user.email}</div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline">{user.role}</Badge>
-                      <Badge
-                        variant={
-                          user.status === "active" ? "default" : "secondary"
-                        }
-                        className={
-                          user.status === "active"
-                            ? "bg-green-100 text-green-800"
-                            : ""
-                        }
-                      >
-                        {user.status}
-                      </Badge>
-                    </div>
+              <div className="space-y-4">
+                <Button
+                  onClick={handleTestMultipleOperations}
+                  disabled={runningAsync}
+                  className="w-full"
+                >
+                  {runningAsync ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Running...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Run Tests
+                    </>
+                  )}
+                </Button>
+                {asyncError && (
+                  <div className="text-red-600 text-sm">{asyncError}</div>
+                )}
+                {testResults.multipleOperations && (
+                  <div className="space-y-2">
+                    {Object.entries(testResults.multipleOperations).map(
+                      ([key, result]) => (
+                        <div key={key}>
+                          <strong className="text-sm">{key}:</strong>
+                          {renderTestResult(key, result)}
+                        </div>
+                      )
+                    )}
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
-        )}
+        </div>
 
         {/* Test Results Summary */}
         <Card className="mt-6">

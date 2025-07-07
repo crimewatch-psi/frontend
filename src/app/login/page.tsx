@@ -5,16 +5,14 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
 import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { authApi, handleApiError, LoginCredentials } from "@/lib/api";
 
 function LoginForm() {
-  const [credentials, setCredentials] = useState({
+  const [credentials, setCredentials] = useState<LoginCredentials>({
     email: "",
     password: "",
-    role: "pemerintah",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,28 +27,33 @@ function LoginForm() {
     setError("");
 
     try {
-      const loginData: LoginCredentials = {
-        email: credentials.email,
-        password: credentials.password,
-      };
-
-      const data = await authApi.login(loginData);
+      const data = await authApi.login(credentials);
 
       if (data.message === "Login berhasil") {
         const userRole = data.user.role.toLowerCase();
-
-        if (userRole === "admin") {
-          router.push("/admin");
-        } else if (userRole === "pemerintah" || userRole === "polri") {
-          router.push("/dashboard");
-        } else if (userRole === "manajer_wisata") {
-          router.push("/dashboard");
-        } else {
-          router.push("/");
+        switch (userRole) {
+          case "admin":
+            router.push("/admin");
+            break;
+          case "manager":
+          case "polri":
+            router.push("/dashboard");
+            break;
+          default:
+            router.push(redirect);
         }
       }
-    } catch (error) {
-      setError(handleApiError(error));
+    } catch (error: any) {
+      if (
+        error.message === "Akun tidak ditemukan" ||
+        error.message === "Password salah"
+      ) {
+        setError("Email atau password salah");
+      } else if (error.message === "Email dan password wajib diisi") {
+        setError("Email dan password wajib diisi");
+      } else {
+        setError(handleApiError(error));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +87,7 @@ function LoginForm() {
               type="email"
               required
               placeholder="Masukkan email Anda"
+              autoComplete="email"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               value={credentials.email}
               onChange={(e) =>
@@ -104,6 +108,7 @@ function LoginForm() {
               type="password"
               required
               placeholder="Masukkan kata sandi"
+              autoComplete="current-password"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               value={credentials.password}
               onChange={(e) =>

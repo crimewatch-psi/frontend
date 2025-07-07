@@ -1,8 +1,6 @@
-// app/map/page.tsx
 "use client";
 import { useState, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
-import { FaInfoCircle, FaFilter } from "react-icons/fa";
 import { CrimeWatchSidebar } from "@/components/crimewatch-sidebar";
 import { CenterSearchBar } from "@/components/crime-searchbar";
 import type { CrimeRateLevel, CrimeCategory, CrimeData } from "@/types/crime";

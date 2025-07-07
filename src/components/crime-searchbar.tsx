@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback, useEffect, useRef, KeyboardEvent } from "react";
-import { FaSearch, FaTimes } from "react-icons/fa";
+import { Search, X } from "lucide-react";
 
 interface SearchResult {
   place_id: number;
@@ -91,7 +91,7 @@ export function CenterSearchBar({
           {/* Search input with glass effect */}
           <div className="flex items-center bg-white/20 backdrop-blur-sm">
             <div className="pl-4 text-gray-700">
-              <FaSearch />
+              <Search />
             </div>
             <input
               ref={inputRef}
@@ -110,7 +110,7 @@ export function CenterSearchBar({
                 className="p-3 text-gray-700 hover:text-gray-900 transition-colors"
                 aria-label="Clear search"
               >
-                <FaTimes />
+                <X />
               </button>
             )}
           </div>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HeatmapPointer } from "@/components/ui/heatmap-pointer";
-import { MapPin, Brain, Globe } from "lucide-react";
+import { MapPin, Globe, RefreshCw, Send, Brain } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Input } from "./ui/input";
 
 interface CrimeDataPoint {
   x: number;
@@ -29,7 +31,6 @@ interface RegionData {
   riskLevel: "low" | "medium" | "high";
 }
 
-// Mock crime data for each region
 const mockRegionData: Record<string, RegionData> = {
   yogyakarta: {
     name: "Kota Yogyakarta",
@@ -317,10 +318,30 @@ function CrimeHeatmap({ region }: { region: string }) {
 }
 
 export function PublicAccessHeatmapSection() {
+  const [currentQuery, setCurrentQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [travelType, setTravelType] = useState("");
+  const [timeOfDay, setTimeOfDay] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState("yogyakarta");
+  const handleSubmitQuery = async () => {
+    if (!currentQuery.trim()) return;
+    setIsLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setAiResponse(
+      `Saran AI untuk '${currentQuery}' di ${
+        selectedLocation || "(lokasi tidak dipilih)"
+      } pada ${timeOfDay || "(waktu tidak dipilih)"}. Jenis perjalanan: ${
+        travelType || "(tidak dipilih)"
+      }.`
+    );
+    setIsLoading(false);
+    setCurrentQuery("");
+  };
 
   return (
-    <section className="py-16 bg-transparent relative overflow-hidden">
+    <section className="pt-8 pb-16 bg-transparent relative overflow-hidden">
       <HeatmapPointer />
 
       <div className="container mx-auto px-4 relative z-10">
@@ -359,27 +380,126 @@ export function PublicAccessHeatmapSection() {
           </div>
         </div>
 
-        {/* Crime Heatmap */}
         <div className="flex justify-center mb-8">
           <div className="w-full max-w-2xl">
             <CrimeHeatmap region={selectedRegion} />
           </div>
         </div>
 
-        {/* Call to Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg" variant="default">
-            <Link href="/public-heatmap">
+            <Link href="/map">
               <MapPin className="w-5 h-5 mr-2" />
               Lihat Peta Detail
             </Link>
           </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link href="/public-ai">
-              <Brain className="w-5 h-5 mr-2" />
-              Dapatkan Tips Keamanan AI
-            </Link>
-          </Button>
+        </div>
+
+        {/* AI Query Card Section */}
+        <div className="flex justify-center my-8">
+          <Card className="w-full max-w-2xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="w-5 h-5" />
+                Tanyakan AI untuk Saran Keamanan
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Pertanyaan Anda
+                  </label>
+                  <Input
+                    placeholder="contoh: 'Apakah aman mengunjungi Malioboro di malam hari?'"
+                    value={currentQuery}
+                    onChange={(e) => setCurrentQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSubmitQuery()}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Lokasi (Opsional)
+                    </label>
+                    <Select
+                      value={selectedLocation}
+                      onValueChange={setSelectedLocation}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih lokasi" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="malioboro">
+                          Jalan Malioboro
+                        </SelectItem>
+                        <SelectItem value="borobudur">
+                          Candi Borobudur
+                        </SelectItem>
+                        <SelectItem value="kraton">Keraton</SelectItem>
+                        <SelectItem value="parangtritis">
+                          Pantai Parangtritis
+                        </SelectItem>
+                        <SelectItem value="sleman">Kabupaten Sleman</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Jenis Perjalanan
+                    </label>
+                    <Select value={travelType} onValueChange={setTravelType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Jenis perjalanan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="tourism">Wisata</SelectItem>
+                        <SelectItem value="business">Bisnis</SelectItem>
+                        <SelectItem value="solo">Perjalanan Solo</SelectItem>
+                        <SelectItem value="family">Keluarga</SelectItem>
+                        <SelectItem value="group">Grup</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Waktu
+                    </label>
+                    <Select value={timeOfDay} onValueChange={setTimeOfDay}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Waktu" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="morning">Pagi</SelectItem>
+                        <SelectItem value="afternoon">Siang</SelectItem>
+                        <SelectItem value="evening">Sore</SelectItem>
+                        <SelectItem value="night">Malam</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              <Button
+                onClick={handleSubmitQuery}
+                disabled={!currentQuery.trim() || isLoading}
+                className="w-full"
+              >
+                {isLoading ? (
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                {isLoading
+                  ? "AI sedang berpikir..."
+                  : "Dapatkan Rekomendasi AI"}
+              </Button>
+              {aiResponse && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded text-green-800">
+                  {aiResponse}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>
