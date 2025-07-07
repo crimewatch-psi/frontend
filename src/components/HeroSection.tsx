@@ -15,9 +15,8 @@ export function HeroSection() {
         Universitas Islam Indonesia by Group 1
       </StickyBanner>
 
-      <div className="relative z-10 container mx-auto px-4 pt-8 pb-16">
+      <div className="relative z-10 container mx-auto px-4 lg:px-16 pt-8 pb-16 max-w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center min-h-[80vh]">
-          {/* Left Column - Text Content */}
           <div className="flex flex-col justify-center space-y-6">
             <div className="flex justify-center lg:justify-start">
               <div className="bg-black text-white px-4 py-1 rounded-full shadow-lg font-medium text-sm md:text-base">
@@ -27,7 +26,7 @@ export function HeroSection() {
 
             <TextGenerateEffect
               words="Mengoptimalkan Keamanan Destinasi Wisata dengan Manajemen dan Analitik Berbasis AI"
-              className="text-4xl md:text-4xl lg:text-5xl text-black max-w-full text-center lg:text-left font-bold leading-tight"
+              className="text-[clamp(2rem,5vw_+_1rem,6rem)] text-black text-center lg:text-left font-bold leading-tight"
             />
 
             <p className="text-gray-600 text-lg max-w-xl text-center lg:text-left">
