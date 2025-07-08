@@ -5,20 +5,30 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Menu, X, User, LogOut, MapPin } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronDown } from "lucide-react";
 import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { authApi } from "@/lib/api";
 
 interface User {
-  id: string;
+  id: number;
   email: string;
-  name: string;
+  nama: string;
   role: string;
-  organization?: string;
+  status: string;
 }
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -26,33 +36,34 @@ export function Header() {
     checkAuth();
   }, []);
 
-  const checkAuth = () => {
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("auth-token="))
-      ?.split("=")[1];
-
-    if (token) {
-      try {
-        const mockUser = {
-          id: "1",
-          email: "user@example.com",
-          name: "John Doe",
-          role: "regular_user",
-          organization: "Test Org",
-        };
-        setUser(mockUser);
-      } catch (error) {
-        console.error("Auth check failed:", error);
+  const checkAuth = async () => {
+    try {
+      setIsLoading(true);
+      const sessionData = await authApi.checkSession();
+      if (sessionData.isAuthenticated && sessionData.user) {
+        setUser(sessionData.user);
+      } else {
+        setUser(null);
       }
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    document.cookie =
-      "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    setUser(null);
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      setUser(null);
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+
+      setUser(null);
+      router.push("/");
+    }
   };
 
   const getRoleDisplay = (role: string) => {
@@ -63,6 +74,10 @@ export function Header() {
         return { label: "Polri", variant: "destructive" as const };
       case "manajer_wisata":
         return { label: "Manajer Wisata", variant: "secondary" as const };
+      case "manager":
+        return { label: "Manager", variant: "secondary" as const };
+      case "admin":
+        return { label: "Admin", variant: "default" as const };
       default:
         return { label: "User", variant: "outline" as const };
     }
@@ -73,162 +88,147 @@ export function Header() {
     { href: "/contact", label: "Kontak" },
   ];
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <header className="border-b border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center justify-center h-16">
+            <Link
+              href="/"
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            >
+              <Image
+                src="/logo.svg"
+                alt="CrimeWatch"
+                width={48}
+                height={48}
+                className="w-18 h-18"
+              />
+            </Link>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header className="border-b border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
       <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
-          {/* Left - Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-1 flex-1">
-            {navLinks.map((link) => {
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
-                    pathname === link.href
-                      ? "bg-black text-white"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-black"
-                  }`}
-                >
-                  <span>{link.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          {user ? (
+            // Logged in state: Only logo and user dropdown
+            <>
+              {/* Logo - centered */}
+              <Link
+                href="/"
+                className="flex items-start space-x-3 hover:opacity-80 transition-opacity absolute "
+              >
+                <Image
+                  src="/logo.svg"
+                  alt="CrimeWatch"
+                  width={48}
+                  height={48}
+                  className="w-18 h-18"
+                />
+              </Link>
 
-          <Link
-            href="/"
-            className="flex items-center space-x-3 hover:opacity-80 transition-opacity absolute left-1/2 transform -translate-x-1/2"
-          >
-            <Image
-              src="/logo.svg"
-              alt="CrimeWatch"
-              width={48}
-              height={48}
-              className="w-18 h-18"
-            />
-          </Link>
-
-          {/* Right - Auth Buttons */}
-          <div className="flex items-center space-x-3 flex-1 justify-end">
-            {user ? (
-              <div className="hidden md:flex items-center space-x-3">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-black">{user.name}</p>
-                  <div className="flex items-center space-x-2">
-                    <Badge
-                      variant={getRoleDisplay(user.role).variant}
-                      className="text-xs"
+              {/* User dropdown - right side for desktop */}
+              <div className="hidden md:flex items-center ml-auto">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center space-x-2 h-auto p-2"
                     >
-                      {getRoleDisplay(user.role).label}
-                    </Badge>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="border-gray-300 hover:bg-gray-100"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Keluar
-                </Button>
+                      <div className="text-right flex flex-col items-end space-y-1">
+                        <p className="text-sm font-medium text-black">
+                          {user.nama}
+                        </p>
+                        <Badge
+                          // variant={getRoleDisplay(user.role).variant}
+                          className="text-xs"
+                          variant="outline"
+                        >
+                          {getRoleDisplay(user.role).label}
+                        </Badge>
+                      </div>
+                      <ChevronDown className="w-4 h-4 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-1.5 text-sm text-gray-600">
+                      {user.email}
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Keluar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            ) : (
-              <div className="hidden md:flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="border-gray-300 hover:bg-gray-100"
-                >
-                  <Link href="/login">
-                    <User className="w-4 h-4 mr-2" />
-                    Masuk
-                  </Link>
-                </Button>
-                <Button
-                  size="sm"
-                  asChild
-                  className="bg-black hover:bg-gray-800 text-white"
-                >
-                  <Link href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access">
-                    Ajukan Akun
-                  </Link>
-                </Button>
-              </div>
-            )}
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="md:hidden border-gray-300"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? (
-                <X className="w-4 h-4" />
-              ) : (
-                <Menu className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
-            <nav className="flex flex-col space-y-2 mt-4 items-center">
-              {navLinks.map((link) => {
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 ${
-                      pathname === link.href
-                        ? "bg-black text-white"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <span>{link.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              {user ? (
-                <div className="space-y-3">
-                  <div className="px-4">
-                    <p className="text-sm font-medium text-black">
-                      {user.name}
-                    </p>
-                    <p className="text-xs text-gray-600">{user.email}</p>
-                    <Badge
-                      variant={getRoleDisplay(user.role).variant}
-                      className="text-xs mt-1"
+              {/* Mobile menu button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="md:hidden border-gray-300 ml-auto"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? (
+                  <X className="w-4 h-4" />
+                ) : (
+                  <Menu className="w-4 h-4" />
+                )}
+              </Button>
+            </>
+          ) : (
+            // Not logged in state: Original layout
+            <>
+              {/* Left - Navigation Links */}
+              <nav className="hidden md:flex items-center space-x-1 flex-1">
+                {navLinks.map((link) => {
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+                        pathname === link.href
+                          ? "bg-black text-white"
+                          : "text-gray-700 hover:bg-gray-100 hover:text-black"
+                      }`}
                     >
-                      {getRoleDisplay(user.role).label}
-                    </Badge>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleLogout}
-                    className="w-full mx-4 border-gray-300"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Keluar
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2 px-4">
+                      <span>{link.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <Link
+                href="/"
+                className="flex items-center space-x-3 hover:opacity-80 transition-opacity absolute left-1/2 transform -translate-x-1/2"
+              >
+                <Image
+                  src="/logo.svg"
+                  alt="CrimeWatch"
+                  width={48}
+                  height={48}
+                  className="w-18 h-18"
+                />
+              </Link>
+
+              <div className="flex items-center space-x-3 flex-1 justify-end">
+                <div className="hidden md:flex items-center space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
                     asChild
-                    className="w-full border-gray-300"
+                    className="border-gray-300 hover:bg-gray-100"
                   >
-                    <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                    <Link href="/login">
                       <User className="w-4 h-4 mr-2" />
                       Masuk
                     </Link>
@@ -236,18 +236,108 @@ export function Header() {
                   <Button
                     size="sm"
                     asChild
-                    className="w-full bg-black hover:bg-gray-800 text-white"
+                    className="bg-black hover:bg-gray-800 text-white"
                   >
-                    <Link
-                      href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
+                    <Link href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access">
                       Ajukan Akun
                     </Link>
                   </Button>
                 </div>
-              )}
-            </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="md:hidden border-gray-300"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                >
+                  {isMenuOpen ? (
+                    <X className="w-4 h-4" />
+                  ) : (
+                    <Menu className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Mobile menu */}
+        {isMenuOpen && (
+          <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
+            {user ? (
+              // Logged in mobile menu: Just user info and logout
+              <div className="space-y-3 mt-4">
+                <div className="px-4">
+                  <p className="text-sm font-medium text-black">{user.nama}</p>
+                  <p className="text-xs text-gray-600">{user.email}</p>
+                  <Badge
+                    variant={getRoleDisplay(user.role).variant}
+                    className="text-xs mt-1"
+                  >
+                    {getRoleDisplay(user.role).label}
+                  </Badge>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="w-full mx-4 border-gray-300"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Keluar
+                </Button>
+              </div>
+            ) : (
+              // Not logged in mobile menu: Original content
+              <>
+                <nav className="flex flex-col space-y-2 mt-4 items-center">
+                  {navLinks.map((link) => {
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 ${
+                          pathname === link.href
+                            ? "bg-black text-white"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <span>{link.label}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="space-y-2 px-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="w-full border-gray-300"
+                    >
+                      <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                        <User className="w-4 h-4 mr-2" />
+                        Masuk
+                      </Link>
+                    </Button>
+                    <Button
+                      size="sm"
+                      asChild
+                      className="w-full bg-black hover:bg-gray-800 text-white"
+                    >
+                      <Link
+                        href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Ajukan Akun
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

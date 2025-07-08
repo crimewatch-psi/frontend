@@ -38,7 +38,7 @@ export default function ApiTestPage() {
     execute: createUser,
     loading: creatingUser,
     error: createError,
-  } = useApi(adminApi.createUser);
+  } = useApi(adminApi.registerManager);
 
   const {
     execute: runAsyncTest,
@@ -49,8 +49,7 @@ export default function ApiTestPage() {
   const [newUserForm, setNewUserForm] = useState<CreateUserData>({
     email: "",
     password: "",
-    name: "",
-    role: "pemerintah",
+    nama: "",
     organization: "",
   });
 
@@ -75,7 +74,7 @@ export default function ApiTestPage() {
 
   // Test user creation
   const handleCreateTestUser = async () => {
-    if (!newUserForm.email || !newUserForm.password || !newUserForm.name) {
+    if (!newUserForm.email || !newUserForm.password || !newUserForm.nama) {
       alert("Please fill in all required fields");
       return;
     }
@@ -93,8 +92,7 @@ export default function ApiTestPage() {
         setNewUserForm({
           email: "",
           password: "",
-          name: "",
-          role: "pemerintah",
+          nama: "",
           organization: "",
         });
       }
@@ -256,9 +254,9 @@ export default function ApiTestPage() {
                 <div>
                   <Input
                     placeholder="Name"
-                    value={newUserForm.name}
+                    value={newUserForm.nama}
                     onChange={(e) =>
-                      setNewUserForm({ ...newUserForm, name: e.target.value })
+                      setNewUserForm({ ...newUserForm, nama: e.target.value })
                     }
                   />
                 </div>

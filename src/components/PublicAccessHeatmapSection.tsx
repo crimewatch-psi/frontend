@@ -348,7 +348,7 @@ export function PublicAccessHeatmapSection() {
         <div className="text-center mb-8">
           <Badge className="mb-4 bg-green-100 text-green-700 border-green-200">
             <Globe className="w-4 h-4 mr-2" />
-            Tanpa Perlu Login
+            Akses Publik
           </Badge>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Jelajahi Data Keamanan Publik

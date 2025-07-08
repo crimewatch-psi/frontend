@@ -9,9 +9,19 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
   withCredentials: true,
-  xsrfCookieName: "XSRF-TOKEN",
-  xsrfHeaderName: "X-XSRF-TOKEN",
 });
+
+// Add response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Redirect to login page if unauthorized
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 
 export interface LoginCredentials {
   email: string;
@@ -25,6 +35,7 @@ export interface LoginResponse {
     nama: string;
     email: string;
     role: string;
+    status: string;
   };
 }
 
@@ -43,8 +54,7 @@ export interface User {
 export interface CreateUserData {
   email: string;
   password: string;
-  name: string;
-  role: string;
+  nama: string;
   organization: string;
   location?: string;
 }
@@ -52,6 +62,7 @@ export interface CreateUserData {
 export interface UsersResponse {
   success: boolean;
   users: User[];
+  message?: string;
 }
 
 export interface CreateUserResponse {
@@ -65,6 +76,13 @@ export interface UpdateUserStatusData {
   status: string;
 }
 
+export interface UpdateUserData {
+  email?: string;
+  nama?: string;
+  organization?: string;
+  location?: string;
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
@@ -72,12 +90,45 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
+export interface RegisterCredentials {
+  email: string;
+  password: string;
+  nama: string;
+  role: string;
+}
+
+export interface RegisterResponse {
+  message: string;
+  user: {
+    id: number;
+    email: string;
+    nama: string;
+    role: string;
+    status: string;
+  };
+}
+
 export const authApi = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
       const response = await api.post("/login", credentials);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
+    }
+  },
+
+  async register(credentials: RegisterCredentials): Promise<RegisterResponse> {
+    try {
+      const response = await api.post("/register", credentials);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
       throw error;
     }
   },
@@ -105,25 +156,42 @@ export const authApi = {
 };
 
 export const adminApi = {
+  async registerManager(userData: CreateUserData): Promise<CreateUserResponse> {
+    const response = await api.post("/admin/register-manager", userData);
+    return response.data;
+  },
+
   async getUsers(): Promise<UsersResponse> {
     const response = await api.get("/admin/users");
     return response.data;
   },
 
-  async createUser(userData: CreateUserData): Promise<CreateUserResponse> {
-    const response = await api.post("/admin/users", userData);
+  async updateUser(
+    userId: string,
+    userData: UpdateUserData
+  ): Promise<ApiResponse> {
+    const response = await api.patch(`/admin/users/${userId}`, userData);
     return response.data;
   },
 
-  async updateUserStatus(
-    data: UpdateUserStatusData
-  ): Promise<CreateUserResponse> {
-    const response = await api.patch(`/admin/users/${data.userId}/status`, {
-      status: data.status,
+  async updateUserStatus(userId: string, status: string): Promise<ApiResponse> {
+    const response = await api.patch(`/admin/users/${userId}/status`, {
+      status: status,
+    });
+    return response.data;
+  },
+
+  async uploadCrimeData(formData: FormData): Promise<ApiResponse> {
+    const response = await api.post("/admin/kriminal/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
     return response.data;
   },
 };
+
+export const uploadCrimeData = adminApi.uploadCrimeData;
 
 export const locationApi = {
   getLocations: async (): Promise<ApiResponse> => {
