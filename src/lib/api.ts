@@ -90,6 +90,24 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
+export interface HeatmapLocation {
+  mapid?: number;
+  nama_lokasi: string;
+  latitude: number;
+  longitude: number;
+  gmaps_url: string;
+  status?: string;
+}
+
+export interface CrimeData {
+  id?: number;
+  mapid: number;
+  jenis_kejahatan: string;
+  waktu: string;
+  deskripsi?: string;
+  nama_lokasi?: string;
+}
+
 export interface RegisterCredentials {
   email: string;
   password: string;
@@ -182,6 +200,71 @@ export const adminApi = {
   },
 
   async uploadCrimeData(formData: FormData): Promise<ApiResponse> {
+    const response = await api.post("/admin/kriminal/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
+  // Heatmap Location Management
+  async getHeatmapLocations(): Promise<ApiResponse<HeatmapLocation[]>> {
+    const response = await api.get("/admin/heatmap");
+    return response.data;
+  },
+
+  async addHeatmapLocation(
+    locationData: HeatmapLocation
+  ): Promise<ApiResponse> {
+    const response = await api.post("/admin/heatmap/upload", locationData);
+    return response.data;
+  },
+
+  async uploadHeatmapCSV(formData: FormData): Promise<ApiResponse> {
+    const response = await api.post("/admin/heatmap/upload-csv", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
+  async updateHeatmapLocation(
+    mapid: string,
+    locationData: HeatmapLocation
+  ): Promise<ApiResponse> {
+    const response = await api.patch(`/admin/heatmap/${mapid}`, locationData);
+    return response.data;
+  },
+
+  async deleteHeatmapLocation(mapid: string): Promise<ApiResponse> {
+    const response = await api.delete(`/admin/heatmap/${mapid}`);
+    return response.data;
+  },
+
+  async updateHeatmapLocationStatus(
+    mapid: string,
+    status: string
+  ): Promise<ApiResponse> {
+    const response = await api.patch(`/admin/heatmap/${mapid}/status`, {
+      status,
+    });
+    return response.data;
+  },
+
+  // Crime Data Management
+  async getCrimeData(): Promise<ApiResponse<CrimeData[]>> {
+    const response = await api.get("/admin/kriminal");
+    return response.data;
+  },
+
+  async addCrimeData(crimeData: CrimeData): Promise<ApiResponse> {
+    const response = await api.post("/admin/kriminal/add", crimeData);
+    return response.data;
+  },
+
+  async uploadCrimeCSV(formData: FormData): Promise<ApiResponse> {
     const response = await api.post("/admin/kriminal/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",

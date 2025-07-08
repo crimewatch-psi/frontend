@@ -39,8 +39,17 @@ import {
   Clock,
   FileText,
   Database,
+  Map,
+  Plus,
+  FileUp,
 } from "lucide-react";
-import { adminApi, handleApiError, User as ApiUser } from "@/lib/api";
+import {
+  adminApi,
+  handleApiError,
+  User as ApiUser,
+  HeatmapLocation,
+  CrimeData,
+} from "@/lib/api";
 
 export default function AdminDashboard() {
   useAdminGuard();
@@ -71,8 +80,36 @@ export default function AdminDashboard() {
     location: "",
   });
 
+  // Heatmap location states
+  const [heatmapLocation, setHeatmapLocation] = useState<HeatmapLocation>({
+    nama_lokasi: "",
+    latitude: 0,
+    longitude: 0,
+    gmaps_url: "",
+  });
+  const [isSubmittingLocation, setIsSubmittingLocation] = useState(false);
+  const [locationCSVFile, setLocationCSVFile] = useState<File | null>(null);
+  const [isUploadingLocationCSV, setIsUploadingLocationCSV] = useState(false);
+
+  // Crime data states
+  const [crimeData, setCrimeData] = useState<CrimeData>({
+    mapid: 0,
+    jenis_kejahatan: "",
+    waktu: "",
+    deskripsi: "",
+  });
+  const [isSubmittingCrime, setIsSubmittingCrime] = useState(false);
+  const [crimeCSVFile, setCrimeCSVFile] = useState<File | null>(null);
+  const [isUploadingCrimeCSV, setIsUploadingCrimeCSV] = useState(false);
+  const [heatmapLocations, setHeatmapLocations] = useState<HeatmapLocation[]>(
+    []
+  );
+  const [allCrimeData, setAllCrimeData] = useState<CrimeData[]>([]);
+
   useEffect(() => {
     fetchUsers();
+    fetchHeatmapLocations();
+    fetchCrimeData();
   }, []);
 
   useEffect(() => {
@@ -104,6 +141,31 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error("Failed to fetch users:", handleApiError(error));
+    }
+  };
+
+  const fetchHeatmapLocations = async () => {
+    try {
+      const response = await adminApi.getHeatmapLocations();
+      if (response.success && response.data) {
+        setHeatmapLocations(response.data);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to fetch heatmap locations:",
+        handleApiError(error)
+      );
+    }
+  };
+
+  const fetchCrimeData = async () => {
+    try {
+      const response = await adminApi.getCrimeData();
+      if (response.success && response.data) {
+        setAllCrimeData(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch crime data:", handleApiError(error));
     }
   };
 
@@ -257,6 +319,125 @@ export default function AdminDashboard() {
     }
   };
 
+  // Handle heatmap location form submission
+  const handleHeatmapLocationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingLocation(true);
+
+    try {
+      if (heatmapLocation.latitude < -90 || heatmapLocation.latitude > 90) {
+        toast.error("Latitude harus berada di antara -90 dan 90");
+        return;
+      }
+      if (heatmapLocation.longitude < -180 || heatmapLocation.longitude > 180) {
+        toast.error("Longitude harus berada di antara -180 dan 180");
+        return;
+      }
+
+      const response = await adminApi.addHeatmapLocation(heatmapLocation);
+
+      if (response.success) {
+        toast.success("Lokasi berhasil ditambahkan");
+        setHeatmapLocation({
+          nama_lokasi: "",
+          latitude: 0,
+          longitude: 0,
+          gmaps_url: "",
+        });
+        fetchHeatmapLocations();
+      } else {
+        toast.error(response.message || "Gagal menambahkan lokasi");
+      }
+    } catch (error) {
+      console.error("Error adding location:", error);
+      toast.error(handleApiError(error));
+    } finally {
+      setIsSubmittingLocation(false);
+    }
+  };
+
+  // Handle crime data form submission
+  const handleCrimeDataSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingCrime(true);
+
+    try {
+      const response = await adminApi.addCrimeData(crimeData);
+
+      if (response.success) {
+        toast.success("Data kriminal berhasil ditambahkan");
+        setCrimeData({
+          mapid: 0,
+          jenis_kejahatan: "",
+          waktu: "",
+          deskripsi: "",
+        });
+      } else {
+        toast.error(response.message || "Gagal menambahkan data kriminal");
+      }
+    } catch (error) {
+      console.error("Error adding crime data:", error);
+      toast.error(handleApiError(error));
+    } finally {
+      setIsSubmittingCrime(false);
+    }
+  };
+
+  // Handle location CSV upload
+  const handleLocationCSVUpload = async () => {
+    if (!locationCSVFile) {
+      toast.error("Pilih file CSV terlebih dahulu");
+      return;
+    }
+
+    setIsUploadingLocationCSV(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", locationCSVFile);
+
+      const response = await adminApi.uploadHeatmapCSV(formData);
+
+      if (response.success) {
+        toast.success(response.message);
+        setLocationCSVFile(null);
+        fetchHeatmapLocations();
+      } else {
+        toast.error(response.error || "Gagal upload file");
+      }
+    } catch (error) {
+      toast.error(handleApiError(error));
+    } finally {
+      setIsUploadingLocationCSV(false);
+    }
+  };
+
+  // Handle crime CSV upload
+  const handleCrimeCSVUpload = async () => {
+    if (!crimeCSVFile) {
+      toast.error("Pilih file CSV terlebih dahulu");
+      return;
+    }
+
+    setIsUploadingCrimeCSV(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", crimeCSVFile);
+
+      const response = await adminApi.uploadCrimeCSV(formData);
+
+      if (response.success) {
+        toast.success(response.message);
+        setCrimeCSVFile(null);
+      } else {
+        toast.error(response.error || "Gagal upload file");
+      }
+    } catch (error) {
+      toast.error(handleApiError(error));
+    } finally {
+      setIsUploadingCrimeCSV(false);
+    }
+  };
+
   const openEditDialog = (user: ApiUser) => {
     setSelectedUser(user);
     setEditForm({
@@ -338,6 +519,184 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+
+          {/* New Heatmap Locations Card */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-2">
+                    Total Lokasi
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {heatmapLocations.length}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {
+                      heatmapLocations.filter((h) => h.status === "aktif")
+                        .length
+                    }{" "}
+                    aktif
+                  </p>
+                </div>
+                <div className="p-3 bg-green-100 rounded-lg">
+                  <Map className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* New Crime Data Card */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-2">
+                    Total Data Kriminal
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {allCrimeData.length}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date().toLocaleDateString("id-ID", {
+                      year: "numeric",
+                      month: "long",
+                    })}
+                  </p>
+                </div>
+                <div className="p-3 bg-red-100 rounded-lg">
+                  <FileText className="w-6 h-6 text-red-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* New Data Overview Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Heatmap Locations Overview */}
+          <Card className="shadow-sm">
+            <CardHeader className="border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Map className="w-5 h-5" />
+                  Lokasi Heatmap
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="max-h-96 overflow-y-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 sticky top-0">
+                    <tr>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">
+                        Nama Lokasi
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">
+                        Koordinat
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {heatmapLocations.map((location) => (
+                      <tr key={location.mapid} className="hover:bg-gray-50">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center">
+                            <MapPin className="w-4 h-4 text-gray-400 mr-2" />
+                            <a
+                              href={location.gmaps_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              {location.nama_lokasi}
+                            </a>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {location.latitude}, {location.longitude}
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge
+                            variant={
+                              location.status === "aktif"
+                                ? "default"
+                                : "secondary"
+                            }
+                            className={
+                              location.status === "aktif"
+                                ? "bg-green-100 text-green-800 border-green-200"
+                                : "bg-gray-100 text-gray-600 border-gray-200"
+                            }
+                          >
+                            {location.status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Crime Data Overview */}
+          <Card className="shadow-sm">
+            <CardHeader className="border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Data Kriminal
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="max-h-96 overflow-y-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 sticky top-0">
+                    <tr>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">
+                        Jenis Kejahatan
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">
+                        Lokasi
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">
+                        Waktu
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {allCrimeData.map((crime) => (
+                      <tr key={crime.id} className="hover:bg-gray-50">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center">
+                            <AlertCircle className="w-4 h-4 text-red-500 mr-2" />
+                            {crime.jenis_kejahatan}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {crime.nama_lokasi}
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {new Date(crime.waktu).toLocaleDateString("id-ID", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="users" className="space-y-6">
@@ -348,7 +707,7 @@ export default function AdminDashboard() {
             </TabsTrigger>
             <TabsTrigger value="data" className="flex items-center space-x-2">
               <Database className="w-4 h-4" />
-              <span>Input Data Kriminal</span>
+              <span>Kelola Data</span>
             </TabsTrigger>
           </TabsList>
 
@@ -563,125 +922,336 @@ export default function AdminDashboard() {
 
           {/* Data Upload Tab */}
           <TabsContent value="data" className="space-y-6">
-            <Card className="shadow-sm">
-              <CardHeader className="border-b border-gray-200">
-                <CardTitle className="text-xl flex items-center space-x-2">
-                  <Upload className="w-5 h-5" />
-                  <span>Upload Data Kriminal</span>
-                </CardTitle>
-                <p className="text-sm text-gray-600 mt-1">
-                  Impor data kriminal dari file CSV untuk memperbarui database
-                  sistem
-                </p>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="max-w-2xl mx-auto">
-                  {/* File Upload Area */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
-                    <div className="space-y-4">
-                      <div className="flex justify-center">
-                        <FileText className="w-12 h-12 text-gray-400" />
+            {/* Heatmap Locations Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Manual Location Input */}
+              <Card className="shadow-sm">
+                <CardHeader className="border-b border-gray-200">
+                  <CardTitle className="text-lg flex items-center space-x-2">
+                    <Plus className="w-5 h-5" />
+                    <span>Tambah Lokasi Manual</span>
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Tambahkan satu lokasi secara manual
+                  </p>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <form
+                    onSubmit={handleHeatmapLocationSubmit}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nama Lokasi
+                      </label>
+                      <Input
+                        required
+                        value={heatmapLocation.nama_lokasi}
+                        onChange={(e) =>
+                          setHeatmapLocation({
+                            ...heatmapLocation,
+                            nama_lokasi: e.target.value,
+                          })
+                        }
+                        placeholder="Contoh: Malioboro"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Latitude
+                        </label>
+                        <Input
+                          type="number"
+                          required
+                          step="any"
+                          value={heatmapLocation.latitude}
+                          onChange={(e) =>
+                            setHeatmapLocation({
+                              ...heatmapLocation,
+                              latitude: parseFloat(e.target.value),
+                            })
+                          }
+                          placeholder="-7.7956"
+                        />
                       </div>
 
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Upload File
-                        </h3>
-                      </div>
-
-                      <div className="space-y-4">
-                        <input
-                          type="file"
-                          accept=".csv"
-                          onChange={handleFileSelect}
-                          className="hidden"
-                          id="file-upload"
-                        />
-                        <label
-                          htmlFor="file-upload"
-                          className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          Pilih File
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Longitude
                         </label>
-
-                        {selectedFile && (
-                          <div className="text-sm text-gray-600">
-                            Dipilih: {selectedFile.name} (
-                            {(selectedFile.size / 1024).toFixed(1)} KB)
-                          </div>
-                        )}
+                        <Input
+                          type="number"
+                          required
+                          step="any"
+                          value={heatmapLocation.longitude}
+                          onChange={(e) =>
+                            setHeatmapLocation({
+                              ...heatmapLocation,
+                              longitude: parseFloat(e.target.value),
+                            })
+                          }
+                          placeholder="110.3695"
+                        />
                       </div>
+                    </div>
 
-                      {/* Upload Progress */}
-                      {isUploading && (
-                        <div className="space-y-2">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${uploadProgress}%` }}
-                            ></div>
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            Mengupload... {uploadProgress}%
-                          </p>
-                        </div>
-                      )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        URL Google Maps
+                      </label>
+                      <Input
+                        type="url"
+                        required
+                        value={heatmapLocation.gmaps_url}
+                        onChange={(e) =>
+                          setHeatmapLocation({
+                            ...heatmapLocation,
+                            gmaps_url: e.target.value,
+                          })
+                        }
+                        placeholder="https://maps.google.com/..."
+                      />
+                    </div>
 
-                      {/* Upload Button */}
-                      <Button
-                        onClick={handleFileUpload}
-                        disabled={!selectedFile || isUploading}
-                        className="bg-black hover:bg-gray-800"
+                    <Button
+                      type="submit"
+                      className="w-full bg-black hover:bg-gray-800"
+                      disabled={isSubmittingLocation}
+                    >
+                      {isSubmittingLocation ? "Menyimpan..." : "Tambah Lokasi"}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              {/* CSV Location Upload */}
+              <Card className="shadow-sm">
+                <CardHeader className="border-b border-gray-200">
+                  <CardTitle className="text-lg flex items-center space-x-2">
+                    <FileUp className="w-5 h-5" />
+                    <span>Upload Lokasi CSV</span>
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Upload banyak lokasi sekaligus dengan file CSV
+                  </p>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <input
+                        type="file"
+                        accept=".csv"
+                        onChange={(e) =>
+                          setLocationCSVFile(e.target.files?.[0] || null)
+                        }
+                        className="hidden"
+                        id="location-csv-upload"
+                      />
+                      <label
+                        htmlFor="location-csv-upload"
+                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                       >
-                        {isUploading ? "Mengupload..." : "Upload Data"}
-                      </Button>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Pilih File CSV
+                      </label>
+                      {locationCSVFile && (
+                        <p className="text-sm text-gray-600 mt-2">
+                          File: {locationCSVFile.name}
+                        </p>
+                      )}
                     </div>
-                  </div>
 
-                  {/* Instructions */}
-                  <div className="mt-8 space-y-4">
-                    <h4 className="font-medium text-gray-900">
-                      Format File CSV:
-                    </h4>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-600 mb-2">
-                        File CSV harus mencakup kolom berikut:
+                    <div className="text-xs text-gray-500 space-y-1">
+                      <p>
+                        <strong>Format CSV:</strong>
                       </p>
-                      <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-                        <li>
-                          <code className="bg-gray-200 px-1 rounded">
-                            mapid
-                          </code>{" "}
-                          - ID Lokasi
-                        </li>
-                        <li>
-                          <code className="bg-gray-200 px-1 rounded">
-                            jenis_kejahatan
-                          </code>{" "}
-                          - Jenis Kriminal
-                        </li>
-                        <li>
-                          <code className="bg-gray-200 px-1 rounded">
-                            waktu
-                          </code>{" "}
-                          - Tanggal dan waktu (YYYY-MM-DD HH:MM:SS)
-                        </li>
-                        <li>
-                          <code className="bg-gray-200 px-1 rounded">
-                            deskripsi
-                          </code>{" "}
-                          - Deskripsi Kriminal
-                        </li>
-                      </ul>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Maximum file size: 5MB
+                      <p>nama_lokasi, latitude, longitude, gmaps_url</p>
+                      <p>
+                        Contoh:
+                        "Malioboro",-7.7956,110.3695,"https://maps.google.com/..."
                       </p>
                     </div>
+
+                    <Button
+                      onClick={handleLocationCSVUpload}
+                      disabled={!locationCSVFile || isUploadingLocationCSV}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                    >
+                      {isUploadingLocationCSV
+                        ? "Mengupload..."
+                        : "Upload CSV Lokasi"}
+                    </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Crime Data Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+              {/* Manual Crime Data Input */}
+              <Card className="shadow-sm">
+                <CardHeader className="border-b border-gray-200">
+                  <CardTitle className="text-lg flex items-center space-x-2">
+                    <Plus className="w-5 h-5" />
+                    <span>Tambah Data Kriminal Manual</span>
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Tambahkan satu data kriminal secara manual
+                  </p>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <form onSubmit={handleCrimeDataSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Lokasi
+                      </label>
+                      <Select
+                        value={crimeData.mapid.toString()}
+                        onValueChange={(value) =>
+                          setCrimeData({ ...crimeData, mapid: parseInt(value) })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih lokasi" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {heatmapLocations.map((location) => (
+                            <SelectItem
+                              key={location.mapid}
+                              value={location.mapid!.toString()}
+                            >
+                              {location.nama_lokasi}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Jenis Kejahatan
+                      </label>
+                      <Input
+                        required
+                        value={crimeData.jenis_kejahatan}
+                        onChange={(e) =>
+                          setCrimeData({
+                            ...crimeData,
+                            jenis_kejahatan: e.target.value,
+                          })
+                        }
+                        placeholder="Contoh: Pencopetan"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Waktu Kejadian
+                      </label>
+                      <Input
+                        type="datetime-local"
+                        required
+                        value={crimeData.waktu}
+                        onChange={(e) =>
+                          setCrimeData({ ...crimeData, waktu: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Deskripsi
+                      </label>
+                      <Input
+                        value={crimeData.deskripsi}
+                        onChange={(e) =>
+                          setCrimeData({
+                            ...crimeData,
+                            deskripsi: e.target.value,
+                          })
+                        }
+                        placeholder="Deskripsi kejadian (opsional)"
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full "
+                      disabled={isSubmittingCrime}
+                    >
+                      {isSubmittingCrime
+                        ? "Menyimpan..."
+                        : "Tambah Data Kriminal"}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              {/* CSV Crime Data Upload */}
+              <Card className="shadow-sm">
+                <CardHeader className="border-b border-gray-200">
+                  <CardTitle className="text-lg flex items-center space-x-2">
+                    <FileUp className="w-5 h-5" />
+                    <span>Upload Data Kriminal CSV</span>
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Upload banyak data kriminal sekaligus dengan file CSV
+                  </p>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <input
+                        type="file"
+                        accept=".csv"
+                        onChange={(e) =>
+                          setCrimeCSVFile(e.target.files?.[0] || null)
+                        }
+                        className="hidden"
+                        id="crime-csv-upload"
+                      />
+                      <label
+                        htmlFor="crime-csv-upload"
+                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Pilih File CSV
+                      </label>
+                      {crimeCSVFile && (
+                        <p className="text-sm text-gray-600 mt-2">
+                          File: {crimeCSVFile.name}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="text-xs text-gray-500 space-y-1">
+                      <p>
+                        <strong>Format CSV:</strong>
+                      </p>
+                      <p>mapid, jenis_kejahatan, waktu, deskripsi</p>
+                      <p>
+                        Contoh: 1,"Pencopetan","2023-07-15 19:30:00","Deskripsi
+                        kejadian"
+                      </p>
+                    </div>
+
+                    <Button
+                      onClick={handleCrimeCSVUpload}
+                      disabled={!crimeCSVFile || isUploadingCrimeCSV}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                    >
+                      {isUploadingCrimeCSV
+                        ? "Mengupload..."
+                        : "Upload CSV Data Kriminal"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
