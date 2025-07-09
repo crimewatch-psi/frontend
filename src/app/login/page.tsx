@@ -46,7 +46,7 @@ function LoginForm() {
               router.push("/admin");
               break;
             case "manager":
-              router.push("/dashboard");
+              router.push("/manajer-wisata/analytics");
               break;
             default:
               router.push(redirect);

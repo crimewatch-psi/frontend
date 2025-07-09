@@ -115,7 +115,7 @@ export function FeaturesSection() {
                 asChild
               >
                 <Link
-                  href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access"
+                  href="mailto:crimewatch0100@gmail.com?subject=Request%20Account%20Access&body=Halo%2C%20admin%20Crimewatch.%20Saya%20ingin%20membuat%20akun%20Crimewatch%20dengan%20format%3A%0A%0ANama%20pemilik%3A%20%0ANama%20organisasi%2Fbisnis%3A%20%0ALink%20Gmaps%3A%20%0A%0ATerima%20kasih"
                   target="_blank"
                 >
                   Ajukan Akses Akun

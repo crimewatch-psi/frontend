@@ -4,18 +4,41 @@ export const API_BASE_URL = "http://localhost:8000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000, // Increased timeout to 30 seconds
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
+  withCredentials: true, // This is critical for session cookies
 });
 
-// Add response interceptor to handle 401 errors
-api.interceptors.response.use(
-  (response) => response,
+// Add request interceptor to log requests
+api.interceptors.request.use(
+  (config) => {
+    console.log(
+      `Making request to: ${config.method?.toUpperCase()} ${config.url}`
+    );
+    return config;
+  },
   (error) => {
+    console.error("Request error:", error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle 401 errors and log responses
+api.interceptors.response.use(
+  (response) => {
+    console.log(`Response from ${response.config.url}:`, response.status);
+    return response;
+  },
+  (error) => {
+    console.error(
+      "Response error:",
+      error.response?.status,
+      error.response?.data
+    );
     if (error.response?.status === 401) {
+      console.log("Unauthorized - redirecting to login");
       // Redirect to login page if unauthorized
       window.location.href = "/login";
     }
@@ -57,6 +80,8 @@ export interface CreateUserData {
   nama: string;
   organization: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface UsersResponse {
@@ -495,6 +520,81 @@ export const analyticsApi = {
       data: mockHeatmapData,
       message: "Heatmap data retrieved successfully",
     };
+  },
+};
+
+export interface AnalyticsData {
+  manager_info: {
+    nama: string;
+    organization: string;
+    coordinates: {
+      latitude: number;
+      longitude: number;
+    };
+  };
+  crime_summary: {
+    total_crimes: number;
+    nearby_locations: Array<{
+      mapid: string;
+      nama_lokasi: string;
+      latitude: number;
+      longitude: number;
+      distance: number;
+      crimes: Array<{
+        id: number;
+        jenis_kejahatan: string;
+        waktu: string;
+        deskripsi: string;
+      }>;
+    }>;
+    crime_types: Record<string, number>;
+    time_analysis: Record<string, number>;
+    radius_km: number;
+    analysis_date: string;
+  };
+  ai_analysis: {
+    ringkasan: string;
+    analisis_risiko: {
+      tingkat_risiko: string;
+      detail: string;
+    };
+    pola_kriminalitas: {
+      tren: string;
+      waktu_rawan: string;
+      area_rawan: string;
+    };
+    dampak_bisnis: {
+      langsung: string;
+      tidak_langsung: string;
+    };
+    kesimpulan: string;
+  };
+  recommendations: string[];
+}
+
+export interface AnalyticsResponse {
+  success: boolean;
+  data: AnalyticsData;
+  error?: string;
+}
+
+export const managerApi = {
+  async getAnalytics(signal?: AbortSignal): Promise<AnalyticsResponse> {
+    try {
+      const response = await api.get("/manager/analytics", { signal });
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+
+  async getProfile(): Promise<ApiResponse> {
+    try {
+      const response = await api.get("/manager/profile");
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
   },
 };
 

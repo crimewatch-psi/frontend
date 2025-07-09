@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Menu, X, User, LogOut, ChevronDown } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronDown, ChartBar } from "lucide-react";
 import Image from "next/image";
 import {
   DropdownMenu,
@@ -88,7 +88,6 @@ export function Header() {
     { href: "/contact", label: "Kontak" },
   ];
 
-  // Show loading state
   if (isLoading) {
     return (
       <header className="border-b border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
@@ -113,7 +112,7 @@ export function Header() {
   }
 
   return (
-    <header className="border-b border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
+    <header className="border-b shadow-sm border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
       <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           {user ? (
@@ -158,10 +157,23 @@ export function Header() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+
                     <div className="px-2 py-1.5 text-sm text-gray-600">
                       {user.email}
                     </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={
+                          user.role === "admin"
+                            ? "/admin"
+                            : "/manajer-wisata/analytics"
+                        }
+                      >
+                        <ChartBar className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="w-4 h-4 mr-2" />
@@ -238,7 +250,7 @@ export function Header() {
                     asChild
                     className="bg-black hover:bg-gray-800 text-white"
                   >
-                    <Link href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access">
+                    <Link href="mailto:crimewatch0100@gmail.com?subject=Permintaan%20Akun%20CrimeWatch&body=Halo%2C%20admin%20Crimewatch.%20Saya%20ingin%20membuat%20akun%20Crimewatch%20dengan%20format%3A%0A%0ANama%20pemilik%3A%20%0ANama%20organisasi%2Fbisnis%3A%20%0ALink%20Gmaps%3A%20%0A%0ATerima%20kasih">
                       Ajukan Akun
                     </Link>
                   </Button>
@@ -277,6 +289,24 @@ export function Header() {
                     {getRoleDisplay(user.role).label}
                   </Badge>
                 </div>
+                {/* Mobile menu dashboard link */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="w-full mx-4 border-gray-300"
+                >
+                  <Link
+                    href={
+                      user.role === "admin"
+                        ? "/admin"
+                        : "/manajer-wisata/analytics"
+                    }
+                  >
+                    <ChartBar className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -328,7 +358,7 @@ export function Header() {
                       className="w-full bg-black hover:bg-gray-800 text-white"
                     >
                       <Link
-                        href="mailto:admin@crimewatch.id?subject=Request%20Account%20Access"
+                        href="mailto:crimewatch0100@gmail.com?subject=Permintaan%20Akun%20CrimeWatch&body=Halo%2C%20admin%20Crimewatch.%20Saya%20ingin%20membuat%20akun%20Crimewatch%20dengan%20format%3A%0A%0ANama%20pemilik%3A%20%0ANama%20organisasi%2Fbisnis%3A%20%0ALink%20Gmaps%3A%20%0A%0ATerima%20kasih"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Ajukan Akun

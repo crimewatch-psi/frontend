@@ -42,6 +42,7 @@ import {
   Map,
   Plus,
   FileUp,
+  Info,
 } from "lucide-react";
 import {
   adminApi,
@@ -68,10 +69,13 @@ export default function AdminDashboard() {
   const [newUser, setNewUser] = useState({
     email: "",
     password: "",
+    confirmPassword: "", // Add this field
     name: "",
     role: "manager",
     organization: "",
     location: "",
+    latitude: "",
+    longitude: "",
   });
   const [editForm, setEditForm] = useState({
     name: "",
@@ -174,12 +178,41 @@ export default function AdminDashboard() {
     setIsLoading(true);
 
     try {
+      // Check if passwords match
+      if (newUser.password !== newUser.confirmPassword) {
+        toast.error("Password dan konfirmasi password tidak cocok");
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate coordinates if provided
+      if (newUser.latitude || newUser.longitude) {
+        const lat = parseFloat(newUser.latitude);
+        const lng = parseFloat(newUser.longitude);
+
+        if (isNaN(lat) || lat < -90 || lat > 90) {
+          toast.error("Latitude harus berada di antara -90 dan 90");
+          setIsLoading(false);
+          return;
+        }
+
+        if (isNaN(lng) || lng < -180 || lng > 180) {
+          toast.error("Longitude harus berada di antara -180 dan 180");
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const userData = {
         email: newUser.email,
         password: newUser.password,
         nama: newUser.name,
         organization: newUser.organization,
         location: newUser.location,
+        latitude: newUser.latitude ? parseFloat(newUser.latitude) : undefined,
+        longitude: newUser.longitude
+          ? parseFloat(newUser.longitude)
+          : undefined,
       };
 
       const response = await adminApi.registerManager(userData);
@@ -191,10 +224,13 @@ export default function AdminDashboard() {
         setNewUser({
           email: "",
           password: "",
+          confirmPassword: "", // Reset this field too
           name: "",
           role: "manager",
           organization: "",
           location: "",
+          latitude: "",
+          longitude: "",
         });
       } else {
         toast.error(response.message || "Gagal membuat akun manager");
@@ -411,7 +447,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Handle crime CSV upload
   const handleCrimeCSVUpload = async () => {
     if (!crimeCSVFile) {
       toast.error("Pilih file CSV terlebih dahulu");
@@ -460,28 +495,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "Administrator";
-      case "manager":
-        return "Manager";
-      default:
-        return role;
-    }
-  };
-
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "destructive";
-      case "manager":
-        return "default";
-      default:
-        return "outline";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -497,7 +510,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -520,7 +533,6 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          {/* New Heatmap Locations Card */}
           <Card className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -546,7 +558,6 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          {/* New Crime Data Card */}
           <Card className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -572,9 +583,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* New Data Overview Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Heatmap Locations Overview */}
           <Card className="shadow-sm">
             <CardHeader className="border-b border-gray-200">
               <div className="flex justify-between items-center">
@@ -643,7 +652,6 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          {/* Crime Data Overview */}
           <Card className="shadow-sm">
             <CardHeader className="border-b border-gray-200">
               <div className="flex justify-between items-center">
@@ -712,7 +720,6 @@ export default function AdminDashboard() {
           </TabsList>
 
           <TabsContent value="users" className="space-y-6">
-            {/* Search and Filter Bar */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <div className="flex-1">
                 <div className="relative">
@@ -920,11 +927,8 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Data Upload Tab */}
           <TabsContent value="data" className="space-y-6">
-            {/* Heatmap Locations Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Manual Location Input */}
               <Card className="shadow-sm">
                 <CardHeader className="border-b border-gray-200">
                   <CardTitle className="text-lg flex items-center space-x-2">
@@ -1313,6 +1317,22 @@ export default function AdminDashboard() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
+                Konfirmasi Password
+              </label>
+              <Input
+                type="password"
+                required
+                value={newUser.confirmPassword}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, confirmPassword: e.target.value })
+                }
+                placeholder="Minimal 8 karakter"
+                minLength={8}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Nama Organisasi / Bisnis
               </label>
               <Input
@@ -1340,6 +1360,52 @@ export default function AdminDashboard() {
               <p className="text-xs text-gray-500 mt-1">
                 Opsional: Tulis URL Google Maps untuk lokasi organisasi
               </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Latitude
+                </label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={newUser.latitude}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, latitude: e.target.value })
+                  }
+                  placeholder="-7.7956"
+                />
+                <p className="text-xs text-gray-500 mt-1">Contoh: -7.7956</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Longitude
+                </label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={newUser.longitude}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, longitude: e.target.value })
+                  }
+                  placeholder="110.3695"
+                />
+                <p className="text-xs text-gray-500 mt-1">Contoh: 110.3695</p>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <Badge
+                variant="outline"
+                className="w-full px-2 py-1 text-start text-xs justify-start"
+              >
+                <Info className="w-4 h-4 mr-2 text-gray-500" />
+                <span className="text-xs text-gray-500">
+                  Latitude dan Longitude bisa didapatkan dari <br /> deskripsi
+                  Google Maps
+                </span>
+              </Badge>
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">

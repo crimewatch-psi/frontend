@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSP Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #ccc;
+      }
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CrimeWatch CSP Test</h1>
+
+    <div class="test-section">
+      <h2>Backend API Test</h2>
+      <button onclick="testBackendAPI()">Test Backend Connection</button>
+      <div id="backend-result"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>Google API Test</h2>
+      <button onclick="testGoogleAPI()">Test Google API Loading</button>
+      <div id="google-result"></div>
+    </div>
+
+    <script>
+      async function testBackendAPI() {
+        const resultDiv = document.getElementById("backend-result");
+        resultDiv.innerHTML = "Testing backend connection...";
+
+        try {
+          const response = await fetch("http://localhost:8000/api/session", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.ok || response.status === 401) {
+            resultDiv.innerHTML =
+              '<span class="success">✓ Backend API connection successful (CSP allows localhost:8000)</span>';
+          } else {
+            resultDiv.innerHTML =
+              '<span class="error">✗ Backend API returned: ' +
+              response.status +
+              "</span>";
+          }
+        } catch (error) {
+          if (
+            error.message.includes("CSP") ||
+            error.message.includes("Content Security Policy")
+          ) {
+            resultDiv.innerHTML =
+              '<span class="error">✗ CSP Error: ' + error.message + "</span>";
+          } else {
+            resultDiv.innerHTML =
+              '<span class="error">✗ Connection Error: ' +
+              error.message +
+              "</span>";
+          }
+        }
+      }
+
+      function testGoogleAPI() {
+        const resultDiv = document.getElementById("google-result");
+        resultDiv.innerHTML = "Testing Google API loading...";
+
+        // Remove any existing script
+        const existingScript = document.querySelector(
+          'script[src*="apis.google.com"]'
+        );
+        if (existingScript) {
+          existingScript.remove();
+        }
+
+        const script = document.createElement("script");
+        script.src = "https://apis.google.com/js/api.js";
+        script.async = true;
+        script.defer = true;
+
+        script.onload = function () {
+          resultDiv.innerHTML =
+            '<span class="success">✓ Google API script loaded successfully (CSP allows googleapis.com)</span>';
+        };
+
+        script.onerror = function (error) {
+          resultDiv.innerHTML =
+            '<span class="error">✗ Google API script failed to load: ' +
+            error +
+            "</span>";
+        };
+
+        document.head.appendChild(script);
+      }
+
+      // Auto-run tests on page load
+      window.onload = function () {
+        console.log("Running automatic CSP tests...");
+        testBackendAPI();
+        setTimeout(testGoogleAPI, 1000);
+      };
+    </script>
+  </body>
+</html>

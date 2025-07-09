@@ -8,7 +8,7 @@ import Image from "next/image";
 
 export function HeroSection() {
   return (
-    <div className="relative min-h-screen bg-white">
+    <div className="relative min-h-screen bg-transparent">
       <HeatmapPointer />
       <StickyBanner className="bg-gradient-to-b from-blue-500 to-blue-600 text-white text-center text-sm py-2">
         Developed for Information System Development subject, Informatics
@@ -45,7 +45,7 @@ export function HeroSection() {
             </div>
           </div>
 
-          <div className="flex justify-center items-center">
+          <div className="flex justify-center items-center ">
             <div className="w-full max-w-2xl">
               <Image
                 src="/home.png"
