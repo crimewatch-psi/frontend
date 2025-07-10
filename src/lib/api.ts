@@ -1,17 +1,17 @@
 import axios, { AxiosResponse } from "axios";
 
-export const API_BASE_URL = "http://localhost:8000/api";
+export const API_BASE_URL =
+  "https://crimewatch-be-production.up.railway.app/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // Increased timeout to 30 seconds
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // This is critical for session cookies
+  withCredentials: true,
 });
 
-// Add request interceptor to log requests
 api.interceptors.request.use(
   (config) => {
     console.log(
@@ -154,7 +154,11 @@ export interface RegisterResponse {
 export const authApi = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
-      const response = await api.post("/login", credentials);
+      const response = await api.post("/login", credentials, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       return response.data;
     } catch (error: any) {
       if (error.response?.data?.error) {

@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
+import axios from "axios";
 
 interface CrimeDataPoint {
   x: number;
@@ -345,7 +346,6 @@ export function PublicAccessHeatmapSection() {
   const [locationSearchQuery, setLocationSearchQuery] = useState("");
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
 
-  // Function to search for real locations using Nominatim API
   const searchLocations = async (query: string) => {
     if (!query.trim()) {
       setCustomLocations([]);
@@ -389,7 +389,6 @@ export function PublicAccessHeatmapSection() {
     setAiResponse(null);
 
     try {
-      // Create context-aware query
       let contextQuery = currentQuery;
 
       if (selectedLocation || travelType || timeOfDay) {
@@ -400,21 +399,15 @@ export function PublicAccessHeatmapSection() {
         contextQuery = contextQuery.replace(/, $/, "") + ")";
       }
 
-      const response = await fetch(
-        "http://localhost:8000/api/public-ai/query",
+      const response = await axios.post(
+        "https://crimewatch-be-production.up.railway.app/api/public-ai/query",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            question: contextQuery,
-            location: selectedLocation,
-          }),
+          question: contextQuery,
+          location: selectedLocation,
         }
       );
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.success) {
         setAiResponse(data.reply);

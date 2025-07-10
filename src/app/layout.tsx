@@ -21,7 +21,7 @@ export const metadata: Metadata = {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' http://localhost:8000 https://fonts.googleapis.com",
+      "connect-src 'self' https://crimewatch-be-production.up.railway.app/ https://fonts.googleapis.com",
       "frame-src 'self'",
       "object-src 'none'",
       "base-uri 'self'",
