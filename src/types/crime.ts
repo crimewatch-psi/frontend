@@ -1,12 +1,12 @@
 export type CrimeRateLevel = "Highest" | "High" | "Medium" | "Low" | "Lowest";
 
 export const crimeCategories = [
-  "Arson",
-  "Homicide",
-  "Car break ins",
-  "Assault",
-  "Drug offenses",
-  "Theft",
+  "Pembakaran",
+  "Pembunuhan",
+  "Pembobolan mobil",
+  "Penyerangan",
+  "Narkoba",
+  "Pencurian",
 ] as const;
 
 export type CrimeCategory = (typeof crimeCategories)[number];

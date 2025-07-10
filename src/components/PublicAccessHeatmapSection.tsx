@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HeatmapPointer } from "@/components/ui/heatmap-pointer";
@@ -26,14 +26,17 @@ interface CrimeDataPoint {
 
 interface RegionData {
   name: string;
+  coordinates: { lat: number; lng: number };
   crimeData: CrimeDataPoint[];
   totalCrimes: number;
   riskLevel: "low" | "medium" | "high";
 }
 
-const mockRegionData: Record<string, RegionData> = {
+// Real coordinates for Yogyakarta regions using Leaflet/OpenStreetMap data
+const yogyakartaRegions: Record<string, RegionData> = {
   yogyakarta: {
     name: "Kota Yogyakarta",
+    coordinates: { lat: -7.7956, lng: 110.3695 },
     totalCrimes: 47,
     riskLevel: "high",
     crimeData: [
@@ -76,6 +79,7 @@ const mockRegionData: Record<string, RegionData> = {
   },
   bantul: {
     name: "Kabupaten Bantul",
+    coordinates: { lat: -7.8889, lng: 110.3297 },
     totalCrimes: 23,
     riskLevel: "medium",
     crimeData: [
@@ -111,6 +115,7 @@ const mockRegionData: Record<string, RegionData> = {
   },
   sleman: {
     name: "Kabupaten Sleman",
+    coordinates: { lat: -7.7158, lng: 110.3539 },
     totalCrimes: 31,
     riskLevel: "medium",
     crimeData: [
@@ -153,6 +158,7 @@ const mockRegionData: Record<string, RegionData> = {
   },
   kulonprogo: {
     name: "Kabupaten Kulon Progo",
+    coordinates: { lat: -7.8707, lng: 110.1609 },
     totalCrimes: 18,
     riskLevel: "low",
     crimeData: [
@@ -188,6 +194,7 @@ const mockRegionData: Record<string, RegionData> = {
   },
   gunungkidul: {
     name: "Kabupaten Gunung Kidul",
+    coordinates: { lat: -7.9344, lng: 110.5993 },
     totalCrimes: 15,
     riskLevel: "low",
     crimeData: [
@@ -224,7 +231,7 @@ const mockRegionData: Record<string, RegionData> = {
 };
 
 function CrimeHeatmap({ region }: { region: string }) {
-  const regionData = mockRegionData[region];
+  const regionData = yogyakartaRegions[region];
 
   if (!regionData) return null;
 
@@ -317,6 +324,13 @@ function CrimeHeatmap({ region }: { region: string }) {
   );
 }
 
+interface LocationSearchResult {
+  place_id: number;
+  lat: number;
+  lon: number;
+  display_name: string;
+}
+
 export function PublicAccessHeatmapSection() {
   const [currentQuery, setCurrentQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -325,19 +339,98 @@ export function PublicAccessHeatmapSection() {
   const [isLoading, setIsLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState("yogyakarta");
+  const [customLocations, setCustomLocations] = useState<
+    LocationSearchResult[]
+  >([]);
+  const [locationSearchQuery, setLocationSearchQuery] = useState("");
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+
+  // Function to search for real locations using Nominatim API
+  const searchLocations = async (query: string) => {
+    if (!query.trim()) {
+      setCustomLocations([]);
+      return;
+    }
+
+    setIsSearchingLocation(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          query + " Yogyakarta Indonesia"
+        )}&limit=5&bounded=1&viewbox=110.1,7.6,110.7,8.1`
+      );
+      const data = await response.json();
+      setCustomLocations(data);
+    } catch (error) {
+      console.error("Location search error:", error);
+      setCustomLocations([]);
+    } finally {
+      setIsSearchingLocation(false);
+    }
+  };
+
+  // Debounced location search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (locationSearchQuery) {
+        searchLocations(locationSearchQuery);
+      } else {
+        setCustomLocations([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [locationSearchQuery]);
+
   const handleSubmitQuery = async () => {
     if (!currentQuery.trim()) return;
+
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setAiResponse(
-      `Saran AI untuk '${currentQuery}' di ${
-        selectedLocation || "(lokasi tidak dipilih)"
-      } pada ${timeOfDay || "(waktu tidak dipilih)"}. Jenis perjalanan: ${
-        travelType || "(tidak dipilih)"
-      }.`
-    );
-    setIsLoading(false);
-    setCurrentQuery("");
+    setAiResponse(null);
+
+    try {
+      // Create context-aware query
+      let contextQuery = currentQuery;
+
+      if (selectedLocation || travelType || timeOfDay) {
+        contextQuery += ` (Konteks: `;
+        if (selectedLocation) contextQuery += `Lokasi: ${selectedLocation}, `;
+        if (travelType) contextQuery += `Jenis perjalanan: ${travelType}, `;
+        if (timeOfDay) contextQuery += `Waktu: ${timeOfDay}`;
+        contextQuery = contextQuery.replace(/, $/, "") + ")";
+      }
+
+      const response = await fetch(
+        "http://localhost:8000/api/public-ai/query",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question: contextQuery,
+            location: selectedLocation,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAiResponse(data.reply);
+      } else {
+        setAiResponse(
+          "Maaf, terjadi kesalahan saat memproses pertanyaan Anda. Silakan coba lagi."
+        );
+      }
+    } catch (error) {
+      console.error("Error querying AI:", error);
+      setAiResponse(
+        "Maaf, tidak dapat terhubung ke server AI. Silakan coba lagi nanti."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -395,57 +488,90 @@ export function PublicAccessHeatmapSection() {
           </Button>
         </div>
 
-        {/* AI Query Card Section */}
-        <div className="flex justify-center my-8">
+        <div className="flex justify-center my-8 bg-transparent">
           <Card className="w-full max-w-2xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2">
                 <Brain className="w-5 h-5" />
                 Tanyakan AI untuk Saran Keamanan
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div>
+              {/* Quick Questions */}
+              <div className="text-center">
+                <label className="text-sm font-medium text-gray-700 mb-3 block">
+                  Pertanyaan Populer:
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4 max-w-xl mx-auto">
+                  {[
+                    "Apakah Malioboro aman malam hari?",
+                    "Tips keamanan untuk wisatawan solo?",
+                    "Tips keamanan di Candi Borobudur?",
+                    "Transportasi teraman dari bandara?",
+                  ].map((question, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      className="text-left justify-start h-auto p-3 text-xs border-blue-200 hover:bg-blue-50"
+                      onClick={() => setCurrentQuery(question)}
+                      disabled={isLoading}
+                    >
+                      <Brain className="w-3 h-3 mr-2 flex-shrink-0" />
+                      {question}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4 max-w-xl mx-auto">
+                <div className="text-center">
                   <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Pertanyaan Anda
+                    Atau Tanyakan Pertanyaan Anda:
                   </label>
                   <Input
                     placeholder="contoh: 'Apakah aman mengunjungi Malioboro di malam hari?'"
                     value={currentQuery}
                     onChange={(e) => setCurrentQuery(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleSubmitQuery()}
+                    className="border-blue-200 focus:border-blue-400"
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    <label className="text-sm font-medium text-gray-700 mb-2 block text-center">
                       Lokasi (Opsional)
                     </label>
-                    <Select
-                      value={selectedLocation}
-                      onValueChange={setSelectedLocation}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih lokasi" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="malioboro">
-                          Jalan Malioboro
-                        </SelectItem>
-                        <SelectItem value="borobudur">
-                          Candi Borobudur
-                        </SelectItem>
-                        <SelectItem value="kraton">Keraton</SelectItem>
-                        <SelectItem value="parangtritis">
-                          Pantai Parangtritis
-                        </SelectItem>
-                        <SelectItem value="sleman">Kabupaten Sleman</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <Select
+                        value={selectedLocation}
+                        onValueChange={setSelectedLocation}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih region" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sleman">
+                            Kabupaten Sleman
+                          </SelectItem>
+                          <SelectItem value="yogyakarta">
+                            Kota Yogyakarta
+                          </SelectItem>
+                          <SelectItem value="bantul">
+                            Kabupaten Bantul
+                          </SelectItem>
+                          <SelectItem value="kulonprogo">
+                            Kabupaten Kulon Progo
+                          </SelectItem>
+                          <SelectItem value="gunungkidul">
+                            Kabupaten Gunung Kidul
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    <label className="text-sm font-medium text-gray-700 mb-2 block text-center">
                       Jenis Perjalanan
                     </label>
                     <Select value={travelType} onValueChange={setTravelType}>
@@ -462,7 +588,7 @@ export function PublicAccessHeatmapSection() {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    <label className="text-sm font-medium text-gray-700 mb-2 block text-center">
                       Waktu
                     </label>
                     <Select value={timeOfDay} onValueChange={setTimeOfDay}>
@@ -479,23 +605,60 @@ export function PublicAccessHeatmapSection() {
                   </div>
                 </div>
               </div>
-              <Button
-                onClick={handleSubmitQuery}
-                disabled={!currentQuery.trim() || isLoading}
-                className="w-full"
-              >
-                {isLoading ? (
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4 mr-2" />
-                )}
-                {isLoading
-                  ? "AI sedang berpikir..."
-                  : "Dapatkan Rekomendasi AI"}
-              </Button>
+              <div className="max-w-xl mx-auto">
+                <Button
+                  onClick={handleSubmitQuery}
+                  disabled={!currentQuery.trim() || isLoading}
+                  className="w-full"
+                >
+                  {isLoading ? (
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  {isLoading
+                    ? "AI sedang berpikir..."
+                    : "Dapatkan Rekomendasi AI"}
+                </Button>
+              </div>
               {aiResponse && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded text-green-800">
-                  {aiResponse}
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-xl mx-auto">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                      <Brain className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-900 mb-2">
+                        Rekomendasi AI Keamanan:
+                      </p>
+                      <div className="text-sm text-blue-800 whitespace-pre-wrap leading-relaxed">
+                        {aiResponse}
+                      </div>
+                      <div className="mt-3 flex gap-2 justify-center">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setCurrentQuery("");
+                            setAiResponse(null);
+                          }}
+                          className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                        >
+                          Tanya Lagi
+                        </Button>
+                        <Button
+                          size="sm"
+                          asChild
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Link href="/public-ai">
+                            <Brain className="w-4 h-4 mr-2" />
+                            AI Lengkap
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>

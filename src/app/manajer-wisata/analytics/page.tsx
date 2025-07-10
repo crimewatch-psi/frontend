@@ -47,6 +47,7 @@ import { managerApi, AnalyticsData, authApi } from "@/lib/api";
 import { Loading, useLoading } from "@/components/loading";
 import { Header } from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
+import { ChatbotInterface } from "@/components/chatbot-interface";
 
 interface CrimeData {
   id: string;
@@ -428,7 +429,7 @@ export default function CrimeDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="mb-8">
+        <Card className="mb-2">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">
               Rekomendasi Keamanan
@@ -446,9 +447,16 @@ export default function CrimeDashboard() {
           </CardContent>
         </Card>
 
+        <div className="mb-8">
+          <ChatbotInterface
+            mapid={analyticsData.manager_info.mapid}
+            locationName={analyticsData.manager_info.organization}
+            className="h-full min-h-[500px]"
+          />
+        </div>
         {/* Table Controls */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="text-sm text-gray-600">Tampilkan</span>
             <Select value={entriesPerPage} onValueChange={setEntriesPerPage}>
               <SelectTrigger className="w-16 h-8">
@@ -462,18 +470,17 @@ export default function CrimeDashboard() {
             </Select>
             <span className="text-sm text-gray-600">data</span>
           </div>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Cari kejahatan..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
+              className="pl-10 w-full sm:w-64"
             />
           </div>
         </div>
 
-        {/* Crime Data Table */}
         <div className="border rounded-lg mb-8">
           <Table>
             <TableHeader>
@@ -540,9 +547,8 @@ export default function CrimeDashboard() {
           </Table>
         </div>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="w-full">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">
                 Distribusi Kejahatan per Bulan
@@ -576,8 +582,7 @@ export default function CrimeDashboard() {
             </CardContent>
           </Card>
 
-          {/* Crime Types Pie Chart */}
-          <Card>
+          <Card className="w-full">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">
                 Distribusi Jenis Kejahatan
@@ -588,8 +593,8 @@ export default function CrimeDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <ChartContainer config={{}} className="h-64 w-64">
+              <div className="flex flex-col md:flex-row items-center md:items-start md:justify-between gap-4">
+                <ChartContainer config={{}} className="h-64 w-full md:w-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -609,7 +614,7 @@ export default function CrimeDashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                 </ChartContainer>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-row md:flex-col flex-wrap justify-center md:justify-start gap-3">
                   {pieChartData.map((entry, index) => (
                     <div
                       key={index}

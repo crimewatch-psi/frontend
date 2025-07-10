@@ -1,11 +1,14 @@
 "use client";
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { CrimeWatchSidebar } from "@/components/crimewatch-sidebar";
 import { CenterSearchBar } from "@/components/crime-searchbar";
+import { Header } from "@/components/Header";
+import { Button } from "@/components/ui/button";
 import type { CrimeRateLevel, CrimeCategory, CrimeData } from "@/types/crime";
 import { crimeCategories } from "@/types/crime";
 import type { Map } from "leaflet";
+import { Menu, Filter, X } from "lucide-react";
 
 interface MapHandle {
   flyTo: (lat: number, lng: number, zoom?: number) => void;
@@ -64,21 +67,33 @@ export default function MapPage() {
     setSidebarOpen((prev) => !prev);
   }, []);
 
-  const [crimeData] = useState<CrimeData[]>(() => {
+  const [crimeData, setCrimeData] = useState<CrimeData[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  useEffect(() => {
+    const loadMockData = async () => {
+      setIsLoadingData(true);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setCrimeData(generateMockData());
+      setIsLoadingData(false);
+    };
+
+    loadMockData();
+  }, []);
+
+  const generateMockData = (): CrimeData[] => {
     const data: CrimeData[] = [];
 
-    // Center point
     data.push({
       id: 1,
       name: "Central Area",
       lat: crimeCenter.lat,
       lng: crimeCenter.lng,
       crimeRate: "Highest",
-      category: "Theft",
+      category: "Pencurian",
       date: new Date(2024, 6, 15),
     });
 
-    // Surrounding points (50 points)
     for (let i = 0; i < 50; i++) {
       const distance = Math.random() * 0.03;
       const angle = Math.random() * Math.PI * 2;
@@ -101,7 +116,6 @@ export default function MapPage() {
       });
     }
 
-    // Random points (30 points)
     for (let i = 0; i < 30; i++) {
       data.push({
         id: 100 + i,
@@ -120,7 +134,7 @@ export default function MapPage() {
     }
 
     return data;
-  });
+  };
 
   const filteredData = useMemo(() => {
     const [start, end] = dateRange;
@@ -141,77 +155,111 @@ export default function MapPage() {
     });
   }, [crimeData, dateRange, selectedCategories]);
 
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex h-[calc(100vh-64px)] items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-500">Memuat data heatmap...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen relative">
-      <CrimeWatchSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onDateRangeChange={handleDateRangeChange}
-        onCategoryChange={handleCategoryChange}
-        initialIncidents={filteredData.length}
-      />
+    <div className="min-h-screen bg-white">
+      <div className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-4 pt-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Heatmap Kriminalitas
+              </h1>
+              <p className="text-gray-600 mb-6">
+                Visualisasi data kriminalitas Daerah Istimewa Yogyakarta
+              </p>
+            </div>
 
-      <div className="flex-1 relative">
-        <CrimeHeatmap
-          crimeData={filteredData}
-          centerPoint={crimeCenter}
-          selectedLocation={selectedLocation}
-          ref={mapRef}
-        />
-
-        <CenterSearchBar
-          onLocationSelected={handleLocationSelected}
-          onViewCrimeStatistic={handleViewCrimeStatistic}
-        />
-        {!sidebarOpen && (
-          <button
-            onClick={handleSidebarToggle}
-            className={`
-      absolute top-3 left-5 z-[1000] 
-      backdrop-blur-md bg-white/10 border border-white/20
-      px-4 py-2 rounded-lg shadow-lg
-      hover:bg-white/40 hover:shadow-xl
-      transition-all duration-300
-      group
-    `}
-            aria-label="Open filters"
-          >
-            <span
-              className={`
-      font-medium text-gray-800
-      group-hover:text-gray-900
-      flex items-center gap-2
-    `}
+            <Button
+              onClick={handleSidebarToggle}
+              variant={sidebarOpen ? "secondary" : "outline"}
+              size="sm"
+              className="flex items-center gap-2"
             >
-              {/* Optional: Add a menu icon */}
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="opacity-80 group-hover:opacity-100"
-              >
-                <path d="M3 12h18M3 6h18M3 18h18" />
-              </svg>
-              Menu
-            </span>
-          </button>
-        )}
-        <div className="absolute bottom-4 right-4 backdrop-blur-md bg-white/30 p-4 rounded-lg shadow-lg z-[1000] w-48 border border-white/20">
-          <div className="mb-2">
-            <h3 className="font-semibold text-gray-900">Crime Frequency:</h3>
+              {sidebarOpen ? (
+                <>
+                  <X className="w-4 h-4" />
+                  Hide Filters
+                </>
+              ) : (
+                <>
+                  <Filter className="w-4 h-4" />
+                  Show Filters
+                </>
+              )}
+            </Button>
           </div>
+        </div>
+      </div>
 
-          {/* Gradient bar with blur effect */}
-          <div className="backdrop-blur-sm bg-white/20 p-1 rounded-full mb-2">
-            <div className="h-3 w-full rounded-full bg-gradient-to-r from-red-600 via-yellow-400 to-green-500"></div>
-          </div>
+      <div className="flex h-[calc(100vh-128px)] relative">
+        <CrimeWatchSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          onDateRangeChange={handleDateRangeChange}
+          onCategoryChange={handleCategoryChange}
+          initialIncidents={filteredData.length}
+        />
 
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-900 font-medium">Highest</span>
-            <span className="text-gray-900 font-medium">Lowest</span>
+        <div className="flex-1 relative">
+          <CrimeHeatmap
+            crimeData={filteredData}
+            centerPoint={crimeCenter}
+            selectedLocation={selectedLocation}
+            ref={mapRef}
+          />
+
+          <CenterSearchBar
+            onLocationSelected={handleLocationSelected}
+            onViewCrimeStatistic={handleViewCrimeStatistic}
+          />
+
+          {!sidebarOpen && (
+            <Button
+              onClick={handleSidebarToggle}
+              size="sm"
+              className="absolute top-4 left-4 z-[1000] md:hidden bg-white text-gray-900 border border-gray-300 shadow-lg hover:bg-gray-50"
+            >
+              <Menu className="w-4 h-4 mr-2" />
+              Filters
+            </Button>
+          )}
+
+          <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg z-[1000] w-48 border border-gray-200">
+            <div className="mb-2">
+              <h3 className="font-semibold text-gray-900 text-sm">
+                Crime Intensity:
+              </h3>
+            </div>
+
+            <div className="bg-gray-100 p-1 rounded-full mb-2">
+              <div className="h-2 w-full rounded-full bg-gradient-to-r from-green-500 via-yellow-400 to-red-600"></div>
+            </div>
+
+            <div className="flex justify-between text-xs text-gray-700">
+              <span className="font-medium">Low</span>
+              <span className="font-medium">High</span>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="text-xs text-gray-600">
+                <div className="font-medium mb-1">
+                  Total Kejadian: {filteredData.length}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

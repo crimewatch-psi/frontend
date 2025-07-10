@@ -14,6 +14,21 @@ export const metadata: Metadata = {
   title: "CrimeWatch - Sistem Monitoring Keamanan Pariwisata",
   description:
     "Platform monitoring dan analisis keamanan untuk kawasan pariwisata",
+  other: {
+    "Content-Security-Policy": [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https:",
+      "font-src 'self' https://fonts.gstatic.com",
+      "connect-src 'self' http://localhost:8000 https://fonts.googleapis.com",
+      "frame-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join("; "),
+  },
 };
 
 export default function RootLayout({

@@ -84,8 +84,8 @@ export function Header() {
   };
 
   const navLinks = [
-    { href: "/about", label: "Tentang" },
-    { href: "/contact", label: "Kontak" },
+    { href: "#problem-statement", label: "Tentang" },
+    { href: "#footer", label: "Kontak" },
   ];
 
   if (isLoading) {
@@ -204,17 +204,20 @@ export function Header() {
               <nav className="hidden md:flex items-center space-x-1 flex-1">
                 {navLinks.map((link) => {
                   return (
-                    <Link
+                    <a
                       key={link.href}
                       href={link.href}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
-                        pathname === link.href
-                          ? "bg-black text-white"
-                          : "text-gray-700 hover:bg-gray-100 hover:text-black"
-                      }`}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 text-gray-700 hover:bg-gray-100 hover:text-black`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const element = document.querySelector(link.href);
+                        if (element) {
+                          element.scrollIntoView({ behavior: "smooth" });
+                        }
+                      }}
                     >
                       <span>{link.label}</span>
-                    </Link>
+                    </a>
                   );
                 })}
               </nav>

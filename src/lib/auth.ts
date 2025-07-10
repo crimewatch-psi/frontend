@@ -2,9 +2,8 @@ import { headers } from "next/headers";
 
 export enum UserRole {
   ADMIN = "admin",
-  PEMERINTAH = "pemerintah",
+  MANAGER = "manager", // Updated to match database
   POLRI = "polri",
-  MANAJER_WISATA = "manajer_wisata",
   REGULAR_USER = "regular_user",
 }
 
@@ -57,17 +56,17 @@ export function hasAnyRole(user: User | null, roles: UserRole[]): boolean {
 }
 
 /**
- * Check if user can input crime data (Pemerintah or Polri)
+ * Check if user can input crime data (Polri)
  */
 export function canInputCrimeData(user: User | null): boolean {
-  return hasAnyRole(user, [UserRole.PEMERINTAH, UserRole.POLRI]);
+  return hasRole(user, UserRole.POLRI);
 }
 
 /**
- * Check if user can access predictions/analytics (Manajer Wisata)
+ * Check if user can access predictions/analytics (Manager)
  */
 export function canAccessPredictions(user: User | null): boolean {
-  return hasRole(user, UserRole.MANAJER_WISATA);
+  return hasRole(user, UserRole.MANAGER);
 }
 
 /**
@@ -93,11 +92,10 @@ export function getDashboardUrl(role: UserRole): string {
       return "/admin";
     case UserRole.REGULAR_USER:
       return "/";
-    case UserRole.PEMERINTAH:
     case UserRole.POLRI:
       return "/dashboard";
-    case UserRole.MANAJER_WISATA:
-      return "/dashboard";
+    case UserRole.MANAGER:
+      return "/manajer-wisata/analytics";
     default:
       return "/";
   }
@@ -117,12 +115,12 @@ export function getAllowedRoutes(role: UserRole): string[] {
         "/dashboard",
         "/profile",
       ];
-    case UserRole.PEMERINTAH:
     case UserRole.POLRI:
       return ["/", "/dashboard", "/input-data", "/crime-data", "/profile"];
-    case UserRole.MANAJER_WISATA:
+    case UserRole.MANAGER:
       return [
         "/",
+        "/manajer-wisata/analytics",
         "/dashboard",
         "/predictions",
         "/recommendations",

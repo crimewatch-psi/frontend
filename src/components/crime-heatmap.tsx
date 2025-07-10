@@ -80,29 +80,38 @@ const HeatmapLayer = ({
       return [point.lat, point.lng, intensity] as [number, number, number];
     });
 
-    if (heatLayerRef.current) {
-      heatLayerRef.current.remove();
+    // Clean up previous layer
+    if (heatLayerRef.current && map.hasLayer(heatLayerRef.current)) {
+      map.removeLayer(heatLayerRef.current);
     }
 
-    heatLayerRef.current = (L as any)
-      .heatLayer(processedData, {
-        radius: 25,
-        blur: 15,
-        maxZoom: 17,
-        minOpacity: 0.5,
-        gradient: {
-          0.1: "blue",
-          0.3: "green",
-          0.5: "yellow",
-          0.7: "orange",
-          1.0: "red",
-        },
-      })
-      .addTo(map);
+    try {
+      heatLayerRef.current = (L as any)
+        .heatLayer(processedData, {
+          radius: 25,
+          blur: 15,
+          maxZoom: 17,
+          minOpacity: 0.5,
+          gradient: {
+            0.1: "blue",
+            0.3: "green",
+            0.5: "yellow",
+            0.7: "orange",
+            1.0: "red",
+          },
+        })
+        .addTo(map);
+    } catch (error) {
+      console.warn("Error adding heat layer:", error);
+    }
 
     return () => {
-      if (heatLayerRef.current) {
-        map.removeLayer(heatLayerRef.current);
+      if (heatLayerRef.current && map.hasLayer(heatLayerRef.current)) {
+        try {
+          map.removeLayer(heatLayerRef.current);
+        } catch (error) {
+          console.warn("Error removing heat layer:", error);
+        }
       }
     };
   }, [map, data, centerPoint]);
@@ -113,8 +122,10 @@ const HeatmapLayer = ({
 const CrimeHeatmap = forwardRef<CrimeHeatmapHandle, CrimeHeatmapProps>(
   ({ crimeData, centerPoint, selectedLocation }, ref) => {
     const [mapReady, setMapReady] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const mapRef = useRef<Map | null>(null);
     const markerRef = useRef<any>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
 
     useImperativeHandle(ref, () => ({
@@ -123,6 +134,14 @@ const CrimeHeatmap = forwardRef<CrimeHeatmapHandle, CrimeHeatmapProps>(
       },
       getMap: () => mapRef.current,
     }));
+
+    useEffect(() => {
+      setMounted(true);
+      return () => {
+        setMounted(false);
+        setMapReady(false);
+      };
+    }, []);
 
     const handleViewCrimeStatistic = (locationName: string) => {
       router.push(
@@ -202,7 +221,9 @@ const CrimeHeatmap = forwardRef<CrimeHeatmapHandle, CrimeHeatmapProps>(
           style={{ height: "100%", width: "100%" }}
           preferCanvas={true}
           ref={(map) => {
-            mapRef.current = map;
+            if (map) {
+              mapRef.current = map;
+            }
           }}
           whenReady={() => setMapReady(true)}
           zoomControl={false}

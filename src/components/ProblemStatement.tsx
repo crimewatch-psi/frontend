@@ -56,7 +56,7 @@ export function ProblemStatement() {
       content: (
         <CriminalData
           type="Kabupaten Sleman"
-          stats="15 kasus pencurian terhadap wisatawan di Nov 2024"
+          stats="15 kasus pencurian terhadap wisatawan di November 2024"
           description="dilaporkan di sekitar Candi Prambanan dan kawasan Kaliurang. Pencurian sepeda motor yang menargetkan kendaraan sewaan, insiden penjambretan tas di dekat kompleks candi, dan penipuan juru parkir palsu menjadi hal yang umum. Pihak berwenang setempat telah mengerahkan personel keamanan tambahan."
         />
       ),
@@ -68,7 +68,7 @@ export function ProblemStatement() {
       content: (
         <CriminalData
           type="Kabupaten Bantul"
-          stats="22 insiden yang mempengaruhi wisatawan di Des 2024"
+          stats="22 insiden yang mempengaruhi wisatawan di Desember 2024"
           description="terutama di Pantai Parangtritis dan kawasan Imogiri. Pembengkakan harga pedagang pantai, aktivitas pemandu wisata tidak resmi, dan pembobolan kendaraan di area parkir telah dilaporkan. Upaya koordinasi terbaru antara polisi dan petugas pariwisata bertujuan untuk mengatasi masalah ini."
         />
       ),
@@ -80,7 +80,7 @@ export function ProblemStatement() {
       content: (
         <CriminalData
           type="Kabupaten Kulon Progo"
-          stats="8 kasus yang menargetkan wisatawan dilaporkan di Nov 2024"
+          stats="8 kasus yang menargetkan wisatawan dilaporkan di November 2024"
           description="terutama di sekitar Kawasan Wisata Kalibiru dan Waduk Sermo. Masalah meliputi harga akomodasi yang melambung untuk wisatawan, layanan pemandu tidak resmi, dan insiden pencurian kecil di spot foto populer. Para pemangku kepentingan pariwisata sedang mengembangkan protokol keamanan pengunjung."
         />
       ),
@@ -92,7 +92,7 @@ export function ProblemStatement() {
       content: (
         <CriminalData
           type="Kabupaten Gunungkidul"
-          stats="12 insiden terkait wisatawan di Q4 2024"
+          stats="12 insiden terkait wisatawan di kuartal 4 2024"
           description="terkonsentrasi di sekitar Pantai Baron, Pantai Indrayanti, dan Gua Jomblang. Laporan terbaru termasuk penipuan penyewaan peralatan, aktivitas pemandu gua tidak resmi, dan pencurian kendaraan di area parkir pantai. Peningkatan koordinasi antara polisi pariwisata dan masyarakat setempat sedang berlangsung."
         />
       ),
@@ -104,7 +104,10 @@ export function ProblemStatement() {
   ));
 
   return (
-    <div className="relative z-10 bg-white overflow-hidden min-h-screen py-20">
+    <div
+      id="problem-statement"
+      className="relative z-10 bg-transparent overflow-hidden min-h-screen py-20"
+    >
       <HeatmapPointer />
 
       <div className="container mx-auto px-4 relative z-10">

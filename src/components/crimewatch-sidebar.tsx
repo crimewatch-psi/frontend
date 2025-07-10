@@ -70,13 +70,13 @@ export function CrimeWatchSidebar({
       <div
         className={`
         fixed inset-y-0 left-0 z-40
-        backdrop-blur-lg bg-white/10 border-r border-white/20 shadow-lg
+        bg-white border-r border-gray-200 shadow-lg
         transform transition-all duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         w-80
       `}
       >
-        <div className="h-full p-6 flex flex-col overflow-y-auto">
+        <div className="h-full p-6 flex flex-col overflow-y-auto z-10">
           <div className="flex justify-between items-center mb-6">
             <div className="relative w-40 h-10 -ml-12">
               {" "}
@@ -91,7 +91,7 @@ export function CrimeWatchSidebar({
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-white/20 transition-colors text-gray-900"
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
               aria-label="Close sidebar"
             >
               <X className="h-5 w-5" />
@@ -102,7 +102,7 @@ export function CrimeWatchSidebar({
             <h2 className="text-lg font-semibold mb-2 text-gray-900">
               {formatDateRange()}
             </h2>
-            <div className="backdrop-blur-sm bg-white/20 p-4 rounded-lg">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <Slider
                 value={dateRange}
                 onValueChange={handleDateRangeChange}
@@ -111,7 +111,7 @@ export function CrimeWatchSidebar({
                 step={1}
                 minStepsBetweenThumbs={1}
               />
-              <div className="flex justify-between text-sm text-gray-700 mt-1">
+              <div className="flex justify-between text-sm text-gray-600 mt-1">
                 <span>Jan 2024</span>
                 <span>Dec 2025</span>
               </div>
@@ -120,7 +120,7 @@ export function CrimeWatchSidebar({
 
           <div className="mb-8">
             <h2 className="text-lg font-semibold mb-3 text-gray-900">
-              Crime Categories
+              Kategori Kriminalitas
             </h2>
             <div className="grid grid-cols-2 gap-2">
               {crimeCategories.map((category) => (
@@ -131,8 +131,8 @@ export function CrimeWatchSidebar({
                   onClick={() => handleCategoryToggle(category)}
                   className={
                     selectedCategories.includes(category)
-                      ? "bg-gray-900 text-white hover:bg-gray-900 hover:text-white" // Selected state - no hover effect
-                      : "backdrop-blur-sm bg-white/20 border-white/20 text-gray-900 hover:bg-gray-500 hover:text-black" // Unselected with hover
+                      ? "bg-gray-900 text-white hover:bg-gray-800 border-gray-900"
+                      : "bg-white border-gray-200 text-gray-900 hover:bg-gray-50 hover:border-gray-300"
                   }
                 >
                   {category}
@@ -143,7 +143,7 @@ export function CrimeWatchSidebar({
 
           <div className="mb-8">
             <h2 className="text-lg font-semibold mb-2 text-gray-900">
-              Num. Incidents:
+              Jumlah Kejadian:
             </h2>
             <div className="text-3xl font-bold text-gray-900">
               {initialIncidents.toLocaleString()}

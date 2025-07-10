@@ -527,6 +527,7 @@ export interface AnalyticsData {
   manager_info: {
     nama: string;
     organization: string;
+    mapid: number;
     coordinates: {
       latitude: number;
       longitude: number;
