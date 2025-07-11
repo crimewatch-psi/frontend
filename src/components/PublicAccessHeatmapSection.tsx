@@ -400,7 +400,7 @@ export function PublicAccessHeatmapSection() {
       }
 
       const response = await axios.post(
-        "https://crimewatch-be-production.up.railway.app/api/public-ai/query",
+        "http://localhost:8000/api/public-ai/query",
         {
           question: contextQuery,
           location: selectedLocation,

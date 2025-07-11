@@ -1,7 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 
-export const API_BASE_URL =
-  "https://crimewatch-be-production.up.railway.app/api";
+export const API_BASE_URL = "http://localhost:8000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,

@@ -8,11 +8,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { authApi, LoginCredentials } from "@/lib/api";
+import { authApi } from "@/lib/api";
 import Image from "next/image";
 
 function LoginForm() {
-  const [credentials, setCredentials] = useState<LoginCredentials>({
+  const [credentials, setCredentials] = useState({
     email: "",
     password: "",
   });
@@ -29,19 +29,19 @@ function LoginForm() {
     setError("");
 
     try {
-      const data = await authApi.login(credentials);
+      const data = await authApi.login({
+        email: credentials.email,
+        password: credentials.password,
+      });
 
-      if (data.message === "Login berhasil") {
+      if (data.user) {
         toast.success("Login berhasil!", {
-          description: `Selamat datang, ${data.user.nama}`,
+          description: `Selamat datang, ${data.user.nama || data.user.email}`,
           duration: 3000,
         });
 
-        const userRole = data.user.role.toLowerCase();
-        console.log("User role:", userRole, "User data:", data.user);
-
         setTimeout(() => {
-          switch (userRole) {
+          switch (data.user.role) {
             case "admin":
               router.push("/admin");
               break;
@@ -67,7 +67,7 @@ function LoginForm() {
             errorMessage = "Password salah";
             break;
           case "Email dan password wajib diisi.":
-            errorMessage = "Email dan password wajib diisi";
+            errorMessage = "Email dan password harus diisi";
             break;
           default:
             errorMessage = error.message;

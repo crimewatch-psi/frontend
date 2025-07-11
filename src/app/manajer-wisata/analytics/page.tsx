@@ -43,7 +43,8 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { managerApi, AnalyticsData, authApi } from "@/lib/api";
+import { managerApi, AnalyticsData } from "@/lib/api";
+import { useManagerGuard } from "@/hooks/useManagerGuard";
 import { Loading, useLoading } from "@/components/loading";
 import { Header } from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +58,12 @@ interface CrimeData {
 }
 
 export default function CrimeDashboard() {
+  const {
+    isAuthenticated,
+    user,
+    isLoading: authLoading,
+    isManager,
+  } = useManagerGuard();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
     null
   );
@@ -81,47 +88,45 @@ export default function CrimeDashboard() {
     setExpandedRows(newExpandedRows);
   };
 
+  const retryFetch = () => {
+    // Trigger a re-fetch by clearing error and reloading
+    handleError("");
+    window.location.reload();
+  };
+
   useEffect(() => {
     const abortController = new AbortController();
 
     const fetchData = async () => {
-      try {
-        startLoading();
+      // Only fetch data if user is authenticated and is a manager
+      if (!authLoading && isAuthenticated && isManager) {
+        try {
+          startLoading();
+          console.log("Fetching analytics data for manager...");
 
-        console.log("Checking authentication status...");
-        const sessionCheck = await authApi.checkSession();
-        console.log("Session check result:", sessionCheck);
-
-        if (
-          !sessionCheck.isAuthenticated ||
-          sessionCheck.user?.role !== "manager"
-        ) {
-          console.log("Not authenticated or not a manager, redirecting...");
-          window.location.href = "/login";
-          return;
-        }
-
-        console.log("User is authenticated, fetching analytics...");
-        const response = await managerApi.getAnalytics();
-        console.log("Analytics response:", response);
-
-        if (response.success) {
-          setAnalyticsData(response.data);
-        } else {
-          handleError(response.error || "Gagal memuat data");
-        }
-      } catch (err) {
-        // Only set error if the request wasn't aborted
-        if (err instanceof Error && err.name !== "AbortError") {
-          console.error("Error fetching analytics:", err);
-          handleError(
-            err instanceof Error
-              ? err.message
-              : "Terjadi kesalahan saat memuat data"
+          const response = await managerApi.getAnalytics(
+            abortController.signal
           );
+          console.log("Analytics response:", response);
+
+          if (response.success) {
+            setAnalyticsData(response.data);
+          } else {
+            handleError(response.error || "Gagal memuat data");
+          }
+        } catch (err) {
+          // Only set error if the request wasn't aborted
+          if (err instanceof Error && err.name !== "AbortError") {
+            console.error("Error fetching analytics:", err);
+            handleError(
+              err instanceof Error
+                ? err.message
+                : "Terjadi kesalahan saat memuat data"
+            );
+          }
+        } finally {
+          stopLoading();
         }
-      } finally {
-        stopLoading();
       }
     };
 
@@ -130,7 +135,7 @@ export default function CrimeDashboard() {
     return () => {
       abortController.abort(); // Cleanup on unmount
     };
-  }, []);
+  }, [authLoading, isAuthenticated, isManager]);
 
   const formatCrimeDataForTable = (): CrimeData[] => {
     if (!analyticsData) return [];
@@ -194,44 +199,19 @@ export default function CrimeDashboard() {
     );
   };
 
-  const retryFetch = async () => {
-    try {
-      startLoading();
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-white p-6 flex items-center justify-center">
+        <Loading message="Memeriksa autentikasi..." />
+      </div>
+    );
+  }
 
-      // First check if we're authenticated
-      console.log("Checking authentication status...");
-      const sessionCheck = await authApi.checkSession();
-      console.log("Session check result:", sessionCheck);
-
-      if (
-        !sessionCheck.isAuthenticated ||
-        sessionCheck.user?.role !== "manager"
-      ) {
-        console.log("Not authenticated or not a manager, redirecting...");
-        window.location.href = "/login";
-        return;
-      }
-
-      console.log("User is authenticated, fetching analytics...");
-      const response = await managerApi.getAnalytics();
-      console.log("Analytics response:", response);
-
-      if (response.success) {
-        setAnalyticsData(response.data);
-      } else {
-        handleError(response.error || "Gagal memuat data");
-      }
-    } catch (err) {
-      console.error("Error fetching analytics:", err);
-      handleError(
-        err instanceof Error
-          ? err.message
-          : "Terjadi kesalahan saat memuat data"
-      );
-    } finally {
-      stopLoading();
-    }
-  };
+  // Don't render anything if not authenticated or not a manager (useManagerGuard handles redirects)
+  if (!isAuthenticated || !isManager) {
+    return null;
+  }
 
   if (isLoading) {
     return (

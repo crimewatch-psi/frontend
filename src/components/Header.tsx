@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Menu, X, User, LogOut, ChevronDown, ChartBar } from "lucide-react";
+import { Menu, X, User as UserIcon, LogOut, ChevronDown, ChartBar } from "lucide-react";
 import Image from "next/image";
 import {
   DropdownMenu,
@@ -15,53 +15,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { authApi } from "@/lib/api";
+import { useSessionAuth } from "@/hooks/useSessionAuth";
 
-interface User {
-  id: number;
-  email: string;
-  nama: string;
-  role: string;
-  status: string;
-}
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated, user, isLoading, logout } = useSessionAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      setIsLoading(true);
-      const sessionData = await authApi.checkSession();
-      if (sessionData.isAuthenticated && sessionData.user) {
-        setUser(sessionData.user);
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleLogout = async () => {
     try {
-      await authApi.logout();
-      setUser(null);
+      await logout();
       router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
-
-      setUser(null);
       router.push("/");
     }
   };
@@ -115,7 +83,7 @@ export function Header() {
     <header className="border-b shadow-sm border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
       <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
-          {user ? (
+          {isAuthenticated && user ? (
             // Logged in state: Only logo and user dropdown
             <>
               {/* Logo - centered */}
@@ -244,7 +212,7 @@ export function Header() {
                     className="border-gray-300 hover:bg-gray-100"
                   >
                     <Link href="/login">
-                      <User className="w-4 h-4 mr-2" />
+                      <UserIcon className="w-4 h-4 mr-2" />
                       Masuk
                     </Link>
                   </Button>
@@ -279,7 +247,7 @@ export function Header() {
         {/* Mobile menu */}
         {isMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
-            {user ? (
+            {isAuthenticated && user ? (
               // Logged in mobile menu: Just user info and logout
               <div className="space-y-3 mt-4">
                 <div className="px-4">
@@ -351,7 +319,7 @@ export function Header() {
                       className="w-full border-gray-300"
                     >
                       <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                        <User className="w-4 h-4 mr-2" />
+                        <UserIcon className="w-4 h-4 mr-2" />
                         Masuk
                       </Link>
                     </Button>
