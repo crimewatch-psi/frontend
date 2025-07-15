@@ -200,7 +200,7 @@ const CrimeHeatmap = forwardRef<CrimeHeatmapHandle, CrimeHeatmapProps>(
     }
 
     return (
-      <div className="relative h-full w-full">
+      <div className="relative h-full w-full z-10">
         <style jsx global>{`
           .bounce-marker {
             animation: bounce 0.5s infinite alternate ease-in-out;
