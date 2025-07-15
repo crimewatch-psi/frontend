@@ -80,7 +80,6 @@ const HeatmapLayer = ({
       return [point.lat, point.lng, intensity] as [number, number, number];
     });
 
-    // Clean up previous layer
     if (heatLayerRef.current && map.hasLayer(heatLayerRef.current)) {
       map.removeLayer(heatLayerRef.current);
     }
@@ -200,7 +199,7 @@ const CrimeHeatmap = forwardRef<CrimeHeatmapHandle, CrimeHeatmapProps>(
     }
 
     return (
-      <div className="relative h-full w-full z-10">
+      <div className="relative h-full min-h-screen w-full z-10">
         <style jsx global>{`
           .bounce-marker {
             animation: bounce 0.5s infinite alternate ease-in-out;
@@ -259,7 +258,7 @@ const CrimeHeatmap = forwardRef<CrimeHeatmapHandle, CrimeHeatmapProps>(
                     }}
                     className="w-full bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors duration-200"
                   >
-                    View Crime Statistic
+                    Lihat Statistik Kriminalitas
                   </button>
                 </div>
               </Popup>

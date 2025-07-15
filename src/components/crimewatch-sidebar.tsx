@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { CrimeCategory } from "@/types/crime";
 import { crimeCategories } from "@/types/crime";
 import Image from "next/image";
+import Link from "next/link";
 
 const months = [
   "Jan",
@@ -78,17 +79,18 @@ export function CrimeWatchSidebar({
       >
         <div className="h-full p-6 flex flex-col overflow-y-auto z-10">
           <div className="flex justify-between items-center mb-6">
-            <div className="relative w-40 h-10 -ml-12">
-              {" "}
-              {/* Adjust width/height as needed */}
-              <Image
-                src="/logo.svg"
-                alt="Crime Watch Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
+            <Link href="/">
+              <div className="relative w-40 h-16 -ml-8 ">
+                {" "}
+                <Image
+                  src="/logo.svg"
+                  alt="Crime Watch Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </Link>
             <button
               onClick={onClose}
               className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"

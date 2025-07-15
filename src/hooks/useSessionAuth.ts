@@ -28,13 +28,18 @@ export function useSessionAuth() {
 
   const checkSession = async () => {
     try {
-      setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
-      
+      setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
+
       const response = await authApi.checkSession();
-      
+
       setAuthState({
         isAuthenticated: response.isAuthenticated,
-        user: response.user || null,
+        user: response.user
+          ? ({
+              ...response.user,
+              role: response.user.role as "admin" | "manager",
+            } as SessionUser)
+          : null,
         isLoading: false,
         error: null,
       });

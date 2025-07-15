@@ -42,6 +42,13 @@ import {
   PieChart,
   Pie,
   Cell,
+  BarChart,
+  Bar,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  Area,
+  AreaChart,
 } from "recharts";
 import { managerApi, AnalyticsData } from "@/lib/api";
 import { useManagerGuard } from "@/hooks/useManagerGuard";
@@ -305,6 +312,74 @@ export default function CrimeDashboard() {
             </CardContent>
           </Card>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">
+                Distribusi Kejahatan per Bulan
+              </CardTitle>
+              <div className="text-2xl font-bold mt-4">
+                {analyticsData.crime_summary.total_crimes} Total
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={timeChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value, name) => [value, "Jumlah Kejadian"]}
+                    labelFormatter={(label) => `Bulan: ${label}`}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    dot={{ fill: "#ef4444", strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">
+                Distribusi Jenis Kejahatan
+              </CardTitle>
+              <div className="text-2xl font-bold mt-4">
+                {Object.keys(analyticsData.crime_summary.crime_types).length}{" "}
+                Jenis
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                    labelLine={false}
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value, name) => [value, "Jumlah Kejadian"]}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* AI Analysis Section */}
         <Card className="mb-8">
@@ -525,94 +600,6 @@ export default function CrimeDashboard() {
                 ))}
             </TableBody>
           </Table>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">
-                Distribusi Kejahatan per Bulan
-              </CardTitle>
-              <div className="text-2xl font-bold mt-4">
-                {analyticsData.crime_summary.total_crimes} Total
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  count: { label: "Jumlah Kejahatan", color: "#ef4444" },
-                }}
-                className="h-64"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={timeChartData}>
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                    <YAxis axisLine={false} tickLine={false} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line
-                      type="monotone"
-                      dataKey="count"
-                      stroke="#ef4444"
-                      strokeWidth={2}
-                      dot={{ fill: "#ef4444", strokeWidth: 2, r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">
-                Distribusi Jenis Kejahatan
-              </CardTitle>
-              <div className="text-2xl font-bold mt-4">
-                {Object.keys(analyticsData.crime_summary.crime_types).length}{" "}
-                Jenis
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row items-center md:items-start md:justify-between gap-4">
-                <ChartContainer config={{}} className="h-64 w-full md:w-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieChartData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={2}
-                        dataKey="value"
-                      >
-                        {pieChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-                <div className="flex flex-row md:flex-col flex-wrap justify-center md:justify-start gap-3">
-                  {pieChartData.map((entry, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 text-sm"
-                    >
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: entry.color }}
-                      ></div>
-                      <span>
-                        {entry.name} ({entry.value})
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

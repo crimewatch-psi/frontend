@@ -88,7 +88,6 @@ export function CenterSearchBar({
       <div className="relative mx-4">
         {/* Glassmorphism container with black text */}
         <div className="backdrop-blur-md bg-white/10 rounded-xl shadow-lg border border-white/20 overflow-hidden text-gray-900">
-          {/* Search input with glass effect */}
           <div className="flex items-center bg-white/20 backdrop-blur-sm">
             <div className="pl-4 text-gray-700">
               <Search />

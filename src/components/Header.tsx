@@ -5,7 +5,15 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Menu, X, User as UserIcon, LogOut, ChevronDown, ChartBar } from "lucide-react";
+import {
+  Menu,
+  X,
+  User as UserIcon,
+  LogOut,
+  ChevronDown,
+  ChartBar,
+  Filter,
+} from "lucide-react";
 import Image from "next/image";
 import {
   DropdownMenu,
@@ -17,8 +25,17 @@ import {
 } from "./ui/dropdown-menu";
 import { useSessionAuth } from "@/hooks/useSessionAuth";
 
+interface HeaderProps {
+  sidebarOpen?: boolean;
+  onSidebarToggle?: () => void;
+  showSidebarToggle?: boolean;
+}
 
-export function Header() {
+export function Header({
+  sidebarOpen,
+  onSidebarToggle,
+  showSidebarToggle = false,
+}: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, user, isLoading, logout } = useSessionAuth();
   const router = useRouter();
@@ -84,12 +101,12 @@ export function Header() {
       <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           {isAuthenticated && user ? (
-            // Logged in state: Only logo and user dropdown
+            // Logged in state: Logo, optional sidebar toggle, and user dropdown
             <>
-              {/* Logo - centered */}
+              {/* Logo - left side */}
               <Link
                 href="/"
-                className="flex items-start space-x-3 hover:opacity-80 transition-opacity absolute "
+                className="flex items-start space-x-3 hover:opacity-80 transition-opacity"
               >
                 <Image
                   src="/logo.svg"
@@ -100,70 +117,94 @@ export function Header() {
                 />
               </Link>
 
-              {/* User dropdown - right side for desktop */}
-              <div className="hidden md:flex items-center ml-auto">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="flex items-center space-x-2 h-auto p-2"
-                    >
-                      <div className="text-right flex flex-col items-end space-y-1">
-                        <p className="text-sm font-medium text-black">
-                          {user.nama}
-                        </p>
-                        <Badge
-                          // variant={getRoleDisplay(user.role).variant}
-                          className="text-xs"
-                          variant="outline"
-                        >
-                          {getRoleDisplay(user.role).label}
-                        </Badge>
-                      </div>
-                      <ChevronDown className="w-4 h-4 ml-2" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
-
-                    <div className="px-2 py-1.5 text-sm text-gray-600">
-                      {user.email}
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href={
-                          user.role === "admin"
-                            ? "/admin"
-                            : "/manajer-wisata/analytics"
-                        }
-                      >
-                        <ChartBar className="w-4 h-4 mr-2" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Keluar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Mobile menu button */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="md:hidden border-gray-300 ml-auto"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {isMenuOpen ? (
-                  <X className="w-4 h-4" />
-                ) : (
-                  <Menu className="w-4 h-4" />
+              <div className="flex items-center ml-auto space-x-3">
+                {/* Sidebar toggle button - only shown when enabled */}
+                {showSidebarToggle && onSidebarToggle && (
+                  <Button
+                    onClick={onSidebarToggle}
+                    variant={sidebarOpen ? "secondary" : "outline"}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    {sidebarOpen ? (
+                      <>
+                        <X className="w-4 h-4" />
+                        Hide Filters
+                      </>
+                    ) : (
+                      <>
+                        <Filter className="w-4 h-4" />
+                        Show Filters
+                      </>
+                    )}
+                  </Button>
                 )}
-              </Button>
+
+                {/* User dropdown - right side for desktop */}
+                <div className="hidden md:flex items-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="flex items-center space-x-2 h-auto p-2"
+                      >
+                        <div className="text-right flex flex-col items-end space-y-1">
+                          <p className="text-sm font-medium text-black">
+                            {user.nama}
+                          </p>
+                          <Badge
+                            // variant={getRoleDisplay(user.role).variant}
+                            className="text-xs"
+                            variant="outline"
+                          >
+                            {getRoleDisplay(user.role).label}
+                          </Badge>
+                        </div>
+                        <ChevronDown className="w-4 h-4 ml-2" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
+
+                      <div className="px-2 py-1.5 text-sm text-gray-600">
+                        {user.email}
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href={
+                            user.role === "admin"
+                              ? "/admin"
+                              : "/manajer-wisata/analytics"
+                          }
+                        >
+                          <ChartBar className="w-4 h-4 mr-2" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout}>
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Keluar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Mobile menu button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="md:hidden border-gray-300"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                >
+                  {isMenuOpen ? (
+                    <X className="w-4 h-4" />
+                  ) : (
+                    <Menu className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
             </>
           ) : (
             // Not logged in state: Original layout

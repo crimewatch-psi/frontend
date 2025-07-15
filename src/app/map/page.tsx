@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import type { CrimeRateLevel, CrimeCategory, CrimeData } from "@/types/crime";
 import { crimeCategories } from "@/types/crime";
 import type { Map } from "leaflet";
-import { Menu, Filter, X } from "lucide-react";
+import { ListFilter } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface MapHandle {
   flyTo: (lat: number, lng: number, zoom?: number) => void;
@@ -28,6 +29,7 @@ const CrimeHeatmap = dynamic(
 );
 
 export default function MapPage() {
+  const router = useRouter();
   const crimeCenter = useMemo(() => ({ lat: -7.7925, lng: 110.3658 }), []);
   const [dateRange, setDateRange] = useState<[number, number]>([0, 11]);
   const [selectedCategories, setSelectedCategories] = useState<CrimeCategory[]>(
@@ -48,7 +50,9 @@ export default function MapPage() {
 
   const handleViewCrimeStatistic = () => {
     console.log("Viewing crime stats for:", selectedLocation);
-    // Implement your crime statistics logic here
+  };
+  const handleLogin = () => {
+    router.push("/login");
   };
 
   const handleFlyTo = useCallback((lat: number, lng: number) => {
@@ -84,54 +88,102 @@ export default function MapPage() {
   const generateMockData = (): CrimeData[] => {
     const data: CrimeData[] = [];
 
-    data.push({
-      id: 1,
-      name: "Central Area",
-      lat: crimeCenter.lat,
-      lng: crimeCenter.lng,
-      crimeRate: "Highest",
-      category: "Pencurian",
-      date: new Date(2024, 6, 15),
+    // Known high-crime areas in DIY with realistic names
+    const hotspots = [
+      { name: "Malioboro Street", lat: -7.7925, lng: 110.3658, rate: "Highest" as CrimeRateLevel },
+      { name: "Tugu Station Area", lat: -7.7889, lng: 110.3635, rate: "Highest" as CrimeRateLevel },
+      { name: "Giwangan Terminal", lat: -7.8284, lng: 110.3973, rate: "High" as CrimeRateLevel },
+      { name: "Jalan Kaliurang", lat: -7.7520, lng: 110.3853, rate: "High" as CrimeRateLevel },
+      { name: "Bantul City Center", lat: -7.8807, lng: 110.3294, rate: "High" as CrimeRateLevel },
+      { name: "Sleman Town Square", lat: -7.7325, lng: 110.3515, rate: "High" as CrimeRateLevel },
+      { name: "Kulon Progo Center", lat: -7.8282, lng: 110.1614, rate: "Medium" as CrimeRateLevel },
+      { name: "Gunung Kidul Center", lat: -7.9075, lng: 110.5939, rate: "Medium" as CrimeRateLevel },
+    ];
+
+    // Add hotspots
+    hotspots.forEach((spot, index) => {
+      data.push({
+        id: index + 1,
+        name: spot.name,
+        lat: spot.lat,
+        lng: spot.lng,
+        crimeRate: spot.rate,
+        category: crimeCategories[Math.floor(Math.random() * crimeCategories.length)],
+        date: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+      });
     });
 
-    for (let i = 0; i < 50; i++) {
-      const distance = Math.random() * 0.03;
-      const angle = Math.random() * Math.PI * 2;
+    let currentId = hotspots.length + 1;
 
+    // Generate dense crime data around each hotspot
+    hotspots.forEach((spot) => {
+      const spotsAroundHotspot = spot.rate === "Highest" ? 40 : spot.rate === "High" ? 25 : 15;
+      
+      for (let i = 0; i < spotsAroundHotspot; i++) {
+        const distance = Math.random() * 0.015; // Smaller radius for denser clustering
+        const angle = Math.random() * Math.PI * 2;
+        
+        const crimeRates: CrimeRateLevel[] = spot.rate === "Highest" 
+          ? ["Highest", "High", "High", "Medium"] 
+          : spot.rate === "High" 
+          ? ["High", "High", "Medium", "Medium"] 
+          : ["Medium", "Medium", "Low", "Low"];
+
+        data.push({
+          id: currentId++,
+          name: `${spot.name} Area ${i + 1}`,
+          lat: spot.lat + Math.cos(angle) * distance,
+          lng: spot.lng + Math.sin(angle) * distance,
+          crimeRate: crimeRates[Math.floor(Math.random() * crimeRates.length)],
+          category: crimeCategories[Math.floor(Math.random() * crimeCategories.length)],
+          date: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+        });
+      }
+    });
+
+    // Add scattered crime data across DIY region
+    for (let i = 0; i < 200; i++) {
+      // DIY region bounds: lat -7.5 to -8.2, lng 110.0 to 111.0
+      const lat = -7.5 - (Math.random() * 0.7); // -7.5 to -8.2
+      const lng = 110.0 + (Math.random() * 1.0); // 110.0 to 111.0
+      
+      const crimeRates: CrimeRateLevel[] = ["High", "Medium", "Medium", "Low", "Low", "Lowest"];
+      
       data.push({
-        id: i + 2,
-        name: `Crime Spot ${i}`,
-        lat: crimeCenter.lat + Math.cos(angle) * distance,
-        lng: crimeCenter.lng + Math.sin(angle) * distance,
-        crimeRate: ["High", "Medium"][
-          Math.floor(Math.random() * 2)
-        ] as CrimeRateLevel,
-        category:
-          crimeCategories[Math.floor(Math.random() * crimeCategories.length)],
-        date: new Date(
-          2024,
-          Math.floor(Math.random() * 12),
-          Math.floor(Math.random() * 28) + 1
-        ),
+        id: currentId++,
+        name: `DIY Region ${i + 1}`,
+        lat: lat,
+        lng: lng,
+        crimeRate: crimeRates[Math.floor(Math.random() * crimeRates.length)],
+        category: crimeCategories[Math.floor(Math.random() * crimeCategories.length)],
+        date: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
       });
     }
 
-    for (let i = 0; i < 30; i++) {
-      data.push({
-        id: 100 + i,
-        name: `Random Spot ${i}`,
-        lat: -7.79 + (Math.random() * 0.1 - 0.05),
-        lng: 110.36 + (Math.random() * 0.1 - 0.05),
-        crimeRate: "Low",
-        category:
-          crimeCategories[Math.floor(Math.random() * crimeCategories.length)],
-        date: new Date(
-          2024,
-          Math.floor(Math.random() * 12),
-          Math.floor(Math.random() * 28) + 1
-        ),
-      });
-    }
+    // Add additional high-density spots in urban areas
+    const urbanAreas = [
+      { lat: -7.8014, lng: 110.3645 }, // Yogyakarta city center
+      { lat: -7.7751, lng: 110.3789 }, // UGM area
+      { lat: -7.7477, lng: 110.3553 }, // North Yogya
+      { lat: -7.8123, lng: 110.3598 }, // South Yogya
+    ];
+
+    urbanAreas.forEach((area, areaIndex) => {
+      for (let i = 0; i < 30; i++) {
+        const distance = Math.random() * 0.02;
+        const angle = Math.random() * Math.PI * 2;
+        
+        data.push({
+          id: currentId++,
+          name: `Urban Area ${areaIndex + 1}-${i + 1}`,
+          lat: area.lat + Math.cos(angle) * distance,
+          lng: area.lng + Math.sin(angle) * distance,
+          crimeRate: ["High", "Medium", "Medium", "Low"][Math.floor(Math.random() * 4)] as CrimeRateLevel,
+          category: crimeCategories[Math.floor(Math.random() * crimeCategories.length)],
+          date: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+        });
+      }
+    });
 
     return data;
   };
@@ -158,7 +210,6 @@ export default function MapPage() {
   if (isLoadingData) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="flex h-[calc(100vh-64px)] items-center justify-center">
           <div className="text-center">
             <p className="text-gray-500">Memuat data heatmap...</p>
@@ -181,30 +232,30 @@ export default function MapPage() {
                 Visualisasi data kriminalitas Daerah Istimewa Yogyakarta
               </p>
             </div>
-
-            <Button
-              onClick={handleSidebarToggle}
-              variant={sidebarOpen ? "secondary" : "outline"}
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              {sidebarOpen ? (
-                <>
-                  <X className="w-4 h-4" />
-                  Hide Filters
-                </>
-              ) : (
-                <>
-                  <Filter className="w-4 h-4" />
-                  Show Filters
-                </>
-              )}
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSidebarToggle}
+                className="flex items-center"
+              >
+                <ListFilter className="w-4 h-4 mr-2" />
+                {sidebarOpen ? "Sembunyikan Filters" : "Tampilkan Filters"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogin}
+                className="flex items-center"
+              >
+                Tampilkan Statistik
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-128px)] relative">
+      <div className="flex h-[calc(100vh-192px)] relative">
         <CrimeWatchSidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
@@ -225,17 +276,6 @@ export default function MapPage() {
             onLocationSelected={handleLocationSelected}
             onViewCrimeStatistic={handleViewCrimeStatistic}
           />
-
-          {!sidebarOpen && (
-            <Button
-              onClick={handleSidebarToggle}
-              size="sm"
-              className="absolute top-4 left-4 z-[1000] md:hidden bg-white text-gray-900 border border-gray-300 shadow-lg hover:bg-gray-50"
-            >
-              <Menu className="w-4 h-4 mr-2" />
-              Filters
-            </Button>
-          )}
 
           <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg z-[1000] w-48 border border-gray-200">
             <div className="mb-2">
