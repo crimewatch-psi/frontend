@@ -154,13 +154,37 @@ export interface RegisterResponse {
 export const authApi = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
+      console.log("🔐 FRONTEND LOGIN ATTEMPT:", {
+        timestamp: new Date().toISOString(),
+        email: credentials.email,
+        documentCookie: document.cookie,
+        userAgent: navigator.userAgent
+      });
+
       const response = await api.post("/login", credentials, {
         headers: {
           "Content-Type": "application/json",
         },
       });
+
+      console.log("🔐 FRONTEND LOGIN RESPONSE:", {
+        timestamp: new Date().toISOString(),
+        success: !!response.data,
+        documentCookie: document.cookie,
+        responseHeaders: response.headers,
+        setCookieHeader: response.headers['set-cookie']
+      });
+
       return response.data;
     } catch (error: any) {
+      console.error("🚨 FRONTEND LOGIN FAILED:", {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        documentCookie: document.cookie,
+        timestamp: new Date().toISOString()
+      });
+      
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
       }

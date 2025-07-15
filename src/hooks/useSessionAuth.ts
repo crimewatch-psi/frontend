@@ -30,7 +30,21 @@ export function useSessionAuth() {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
+      console.log("🔍 FRONTEND SESSION CHECK:", {
+        timestamp: new Date().toISOString(),
+        documentCookie: document.cookie,
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+      });
+
       const response = await authApi.checkSession();
+
+      console.log("🔍 FRONTEND SESSION RESPONSE:", {
+        timestamp: new Date().toISOString(),
+        response: response,
+        documentCookie: document.cookie,
+        authenticated: response.isAuthenticated,
+      });
 
       setAuthState({
         isAuthenticated: response.isAuthenticated,
@@ -44,7 +58,14 @@ export function useSessionAuth() {
         error: null,
       });
     } catch (error: any) {
-      console.error("Session check failed:", error);
+      console.error("🚨 FRONTEND SESSION CHECK FAILED:", {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        documentCookie: document.cookie,
+        timestamp: new Date().toISOString(),
+      });
+
       setAuthState({
         isAuthenticated: false,
         user: null,
@@ -65,7 +86,7 @@ export function useSessionAuth() {
       });
     } catch (error: any) {
       console.error("Logout failed:", error);
-      // Even if logout fails, clear local state
+
       setAuthState({
         isAuthenticated: false,
         user: null,
