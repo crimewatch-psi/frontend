@@ -44,7 +44,9 @@ export const ChatbotInterface: React.FC<ChatbotInterfaceProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiUrl =
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://crimewatch-be-production.up.railway.app";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
