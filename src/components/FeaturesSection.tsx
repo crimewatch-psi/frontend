@@ -130,16 +130,6 @@ export function FeaturesSection() {
                   Pemilik & Pengelola Destinasi
                 </div>
               </div>
-              <div className="flex flex-col items-center">
-                <div className="text-2xl font-bold text-black">Pemerintah</div>
-                <div className="text-sm text-gray-600">
-                  Instansi Regional & Lokal
-                </div>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="text-2xl font-bold text-black">Kepolisian</div>
-                <div className="text-sm text-gray-600">Unit Penegak Hukum</div>
-              </div>
             </div>
           </div>
         </div>
