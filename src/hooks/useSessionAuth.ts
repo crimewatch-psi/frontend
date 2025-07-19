@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { authApi } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 
 export interface SessionUser {
   id: number;
@@ -32,17 +33,28 @@ export function useSessionAuth() {
 
       console.log("🔍 FRONTEND SESSION CHECK:", {
         timestamp: new Date().toISOString(),
-        documentCookie: document.cookie,
-        userAgent: navigator.userAgent,
         url: window.location.href,
       });
+
+      // Check Supabase session first
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.log("🔍 NO SUPABASE SESSION:", { sessionError });
+        setAuthState({
+          isAuthenticated: false,
+          user: null,
+          isLoading: false,
+          error: null,
+        });
+        return;
+      }
 
       const response = await authApi.checkSession();
 
       console.log("🔍 FRONTEND SESSION RESPONSE:", {
         timestamp: new Date().toISOString(),
         response: response,
-        documentCookie: document.cookie,
         authenticated: response.isAuthenticated,
       });
 
@@ -62,10 +74,12 @@ export function useSessionAuth() {
         error: error.message,
         response: error.response?.data,
         status: error.response?.status,
-        documentCookie: document.cookie,
         timestamp: new Date().toISOString(),
       });
 
+      // If session check fails, sign out from Supabase
+      await supabase.auth.signOut();
+      
       setAuthState({
         isAuthenticated: false,
         user: null,
@@ -102,6 +116,26 @@ export function useSessionAuth() {
 
   useEffect(() => {
     checkSession();
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('🔍 AUTH STATE CHANGE:', { event, session: !!session });
+        
+        if (event === 'SIGNED_OUT' || !session) {
+          setAuthState({
+            isAuthenticated: false,
+            user: null,
+            isLoading: false,
+            error: null,
+          });
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          checkSession();
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return {

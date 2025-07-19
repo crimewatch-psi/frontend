@@ -1,7 +1,9 @@
 import axios, { AxiosResponse } from "axios";
+import { supabase } from "./supabase";
 
-export const API_BASE_URL =
-  "https://crimewatch-be-production.up.railway.app/api";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
+  : "https://crimewatch-be-production.up.railway.app/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,14 +11,23 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
 });
 
+// Add auth token to requests
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session?.access_token) {
+      config.headers.Authorization = `Bearer ${session.access_token}`;
+    }
+
     console.log(
       `Making request to: ${config.method?.toUpperCase()} ${config.url}`
     );
+
     return config;
   },
   (error) => {
@@ -31,15 +42,15 @@ api.interceptors.response.use(
     console.log(`Response from ${response.config.url}:`, response.status);
     return response;
   },
-  (error) => {
+  async (error) => {
     console.error(
       "Response error:",
       error.response?.status,
       error.response?.data
     );
     if (error.response?.status === 401) {
-      console.log("Unauthorized - redirecting to login");
-      // Redirect to login page if unauthorized
+      console.log("Unauthorized - signing out and redirecting to login");
+      await supabase.auth.signOut();
       window.location.href = "/login";
     }
     return Promise.reject(error);
@@ -157,38 +168,47 @@ export const authApi = {
       console.log("🔐 FRONTEND LOGIN ATTEMPT:", {
         timestamp: new Date().toISOString(),
         email: credentials.email,
-        documentCookie: document.cookie,
-        userAgent: navigator.userAgent
       });
 
-      const response = await api.post("/login", credentials, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // First, authenticate with Supabase directly
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password,
+        });
 
-      console.log("🔐 FRONTEND LOGIN RESPONSE:", {
+      if (authError) {
+        console.error("🚨 SUPABASE AUTH FAILED:", authError);
+        throw new Error(authError.message);
+      }
+
+      if (!authData.user || !authData.session) {
+        throw new Error("Login gagal - tidak ada data pengguna");
+      }
+
+      // Then get user details from backend
+      const response = await api.get("/session");
+
+      console.log("🔐 FRONTEND LOGIN SUCCESS:", {
         timestamp: new Date().toISOString(),
-        success: !!response.data,
-        documentCookie: document.cookie,
-        responseHeaders: response.headers,
-        setCookieHeader: response.headers['set-cookie']
+        userId: authData.user.id,
+        email: authData.user.email,
       });
 
-      return response.data;
+      return {
+        message: "Login berhasil",
+        user: response.data.user,
+      };
     } catch (error: any) {
       console.error("🚨 FRONTEND LOGIN FAILED:", {
         error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        documentCookie: document.cookie,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      
+
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
       }
-      throw error;
+      throw new Error(error.message || "Login gagal");
     }
   },
 
@@ -206,10 +226,16 @@ export const authApi = {
 
   async logout(): Promise<void> {
     try {
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      // Also call backend logout for cleanup
       await api.post("/logout");
       window.location.href = "/";
     } catch (error) {
-      throw error;
+      console.error("Logout error:", error);
+      // Force sign out even if backend call fails
+      await supabase.auth.signOut();
+      window.location.href = "/";
     }
   },
 
@@ -218,10 +244,20 @@ export const authApi = {
     user?: LoginResponse["user"];
   }> {
     try {
+      // Check Supabase session first
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        return { isAuthenticated: false };
+      }
+
       const response = await api.get("/session");
       return response.data;
     } catch (error) {
-      throw error;
+      console.error("Session check error:", error);
+      return { isAuthenticated: false };
     }
   },
 };
@@ -611,6 +647,15 @@ export const managerApi = {
   async getAnalytics(signal?: AbortSignal): Promise<AnalyticsResponse> {
     try {
       const response = await api.get("/manager/analytics", { signal });
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+
+  async getQuickAnalytics(signal?: AbortSignal): Promise<any> {
+    try {
+      const response = await api.get("/manager/analytics/quick", { signal });
       return response.data;
     } catch (error) {
       throw handleApiError(error);
