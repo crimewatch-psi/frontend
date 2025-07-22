@@ -62,6 +62,7 @@ import { useManagerGuard } from "@/hooks/useManagerGuard";
 import { Loading, useLoading } from "@/components/loading";
 import { Header } from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 // Lazy load ChatbotInterface for better performance
 const ChatbotInterface = lazy(() =>
   import("@/components/chatbot-interface").then((module) => ({
@@ -76,7 +77,7 @@ interface CrimeData {
   description: string;
 }
 
-export default function CrimeDashboard() {
+function CrimeDashboardContent() {
   const {
     isAuthenticated,
     user,
@@ -151,11 +152,11 @@ export default function CrimeDashboard() {
             abortController.signal
           );
 
-          if (response.success) {
+          if (response?.success && response?.data) {
             setQuickStats(response.data);
             setLoadingStage("full");
           } else {
-            handleError(response.error || "Gagal memuat data cepat");
+            handleError(response?.error || "Gagal memuat data cepat");
           }
         } catch (err) {
           if (err instanceof Error && err.name !== "AbortError") {
@@ -188,11 +189,11 @@ export default function CrimeDashboard() {
             abortController.signal
           );
 
-          if (response.success) {
+          if (response?.success && response?.data) {
             setAnalyticsData(response.data);
             setLoadingStage("complete");
           } else {
-            handleError(response.error || "Gagal memuat data lengkap");
+            handleError(response?.error || "Gagal memuat data lengkap");
           }
         } catch (err) {
           if (err instanceof Error && err.name !== "AbortError") {
@@ -207,12 +208,27 @@ export default function CrimeDashboard() {
       }
     };
 
-    if (loadingStage === "quick") {
-      fetchQuickData();
-    } else if (loadingStage === "full") {
-      // Delay full data fetch slightly to show quick stats first
-      setTimeout(fetchFullData, 100);
-    }
+    // Wrap async calls in try-catch to prevent unhandled promise rejections
+    const executeFetch = async () => {
+      try {
+        if (loadingStage === "quick") {
+          await fetchQuickData();
+        } else if (loadingStage === "full") {
+          // Delay full data fetch slightly to show quick stats first
+          setTimeout(() => {
+            fetchFullData().catch((err) => {
+              console.error("Unexpected error in fetchFullData:", err);
+              handleError("Terjadi kesalahan tak terduga");
+            });
+          }, 100);
+        }
+      } catch (err) {
+        console.error("Unexpected error in data fetching:", err);
+        handleError("Terjadi kesalahan tak terduga");
+      }
+    };
+
+    executeFetch();
 
     return () => {
       abortController.abort();
@@ -221,28 +237,32 @@ export default function CrimeDashboard() {
 
   // Memoize expensive data transformations
   const crimeData = useMemo((): CrimeData[] => {
-    if (!analyticsData) return [];
+    if (!analyticsData?.crime_summary?.nearby_locations) return [];
 
     const crimesList: CrimeData[] = [];
     analyticsData.crime_summary.nearby_locations.forEach((location) => {
-      location.crimes.forEach((crime) => {
-        crimesList.push({
-          id: `#${crime.id}`,
-          category: crime.jenis_kejahatan,
-          date: new Date(crime.waktu).toLocaleDateString("id-ID"),
-          description:
-            crime.deskripsi.length > 50
-              ? crime.deskripsi.substring(0, 50) + "..."
-              : crime.deskripsi,
+      if (location?.crimes && Array.isArray(location.crimes)) {
+        location.crimes.forEach((crime) => {
+          if (crime?.id && crime?.jenis_kejahatan && crime?.waktu) {
+            crimesList.push({
+              id: `#${crime.id}`,
+              category: crime.jenis_kejahatan,
+              date: new Date(crime.waktu).toLocaleDateString("id-ID"),
+              description:
+                crime.deskripsi && crime.deskripsi.length > 50
+                  ? crime.deskripsi.substring(0, 50) + "..."
+                  : crime.deskripsi || "",
+            });
+          }
         });
-      });
+      }
     });
 
     return crimesList.slice(0, parseInt(entriesPerPage));
   }, [analyticsData, entriesPerPage]);
 
   const pieChartData = useMemo(() => {
-    if (!analyticsData) return [];
+    if (!analyticsData?.crime_summary?.crime_types) return [];
 
     const colors = [
       "#ef4444",
@@ -272,7 +292,7 @@ export default function CrimeDashboard() {
   }, [analyticsData]);
 
   const timeChartData = useMemo(() => {
-    if (!analyticsData) return [];
+    if (!analyticsData?.crime_summary?.time_analysis) return [];
 
     return Object.entries(analyticsData.crime_summary.time_analysis).map(
       ([month, count]) => ({
@@ -342,7 +362,7 @@ export default function CrimeDashboard() {
         <div className="flex items-center gap-4 mb-8 mt-4 ">
           <div>
             <h1 className="text-4xl font-semibold text-black">
-              {displayData.manager_info.organization}
+              {displayData?.manager_info?.organization || "Dashboard Analytics"}
             </h1>
             <p className="text-gray-600">
               Analisis Kriminalitas dalam Radius 20km
@@ -365,9 +385,8 @@ export default function CrimeDashboard() {
                     Total Kejahatan
                   </p>
                   <p className="text-2xl font-bold">
-                    {analyticsData
-                      ? analyticsData.crime_summary.total_crimes
-                      : quickStats?.quick_stats?.estimated_crimes || 0}
+                    {analyticsData?.crime_summary?.total_crimes ||
+                     quickStats?.quick_stats?.estimated_crimes || 0}
                   </p>
                 </div>
               </div>
@@ -383,11 +402,8 @@ export default function CrimeDashboard() {
                     Lokasi Termonitoring
                   </p>
                   <p className="text-2xl font-bold">
-                    {analyticsData
-                      ? analyticsData.crime_summary.nearby_locations.length
-                      : loadingStage === "complete"
-                      ? 0
-                      : "..."}
+                    {analyticsData?.crime_summary?.nearby_locations?.length ||
+                     (loadingStage === "complete" ? 0 : "...")}
                   </p>
                 </div>
               </div>
@@ -761,5 +777,13 @@ export default function CrimeDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CrimeDashboard() {
+  return (
+    <ErrorBoundary>
+      <CrimeDashboardContent />
+    </ErrorBoundary>
   );
 }

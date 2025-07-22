@@ -93,7 +93,7 @@ function LoginForm() {
           <Card className="w-full max-w-md p-8 shadow-xl border-0 bg-white/80 backdrop-blur-sm">
             <div className="relative mb-8">
               <Link href="/" className="absolute left-0 top-4">
-                <ArrowLeft className="w-5 h-5 text-gray-600 hover:text-black transition-colors" />
+                <ArrowLeft className="w-4 h-4 lg:w-5 lg:h-5 text-gray-600 hover:text-black transition-colors" />
               </Link>
               <div className="text-center">
                 <h1 className="text-2xl font-bold text-gray-900">
