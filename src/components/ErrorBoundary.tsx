@@ -30,6 +30,7 @@ export class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("Error caught by boundary:", error, errorInfo);
+    console.error("Component stack:", errorInfo.componentStack);
   }
 
   retry = () => {
@@ -67,6 +68,11 @@ const DefaultErrorFallback: React.FC<{ error?: Error; retry: () => void }> = ({
           <p className="text-gray-700">
             Maaf, terjadi kesalahan saat memuat halaman. Silakan coba lagi.
           </p>
+          {error && (
+            <div className="text-sm text-red-600 bg-red-50 p-3 rounded">
+              <strong>Error:</strong> {error.message}
+            </div>
+          )}
           {error && process.env.NODE_ENV === "development" && (
             <details className="text-xs text-gray-500">
               <summary>Detail Error (Development)</summary>

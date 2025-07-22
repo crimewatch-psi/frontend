@@ -152,10 +152,13 @@ function CrimeDashboardContent() {
             abortController.signal
           );
 
+          console.log("Quick analytics response:", response);
+
           if (response?.success && response?.data) {
             setQuickStats(response.data);
             setLoadingStage("full");
           } else {
+            console.error("Quick analytics failed:", response);
             handleError(response?.error || "Gagal memuat data cepat");
           }
         } catch (err) {
@@ -189,10 +192,13 @@ function CrimeDashboardContent() {
             abortController.signal
           );
 
+          console.log("Full analytics response:", response);
+
           if (response?.success && response?.data) {
             setAnalyticsData(response.data);
             setLoadingStage("complete");
           } else {
+            console.error("Full analytics failed:", response);
             handleError(response?.error || "Gagal memuat data lengkap");
           }
         } catch (err) {
