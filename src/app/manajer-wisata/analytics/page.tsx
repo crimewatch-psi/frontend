@@ -539,7 +539,7 @@ function CrimeDashboardContent() {
                   {/* Ringkasan */}
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <p className="text-gray-700 italic">
-                      {analyticsData.ai_analysis.ringkasan}
+                      {analyticsData?.ai_analysis?.ringkasan || "Tidak ada ringkasan tersedia."}
                     </p>
                   </div>
 
@@ -552,24 +552,21 @@ function CrimeDashboardContent() {
                       <div className="flex items-center gap-2 mb-2">
                         <Badge
                           variant={
-                            analyticsData.ai_analysis.analisis_risiko.tingkat_risiko.toLowerCase() ===
+                            analyticsData?.ai_analysis?.analisis_risiko?.tingkat_risiko?.toLowerCase() ===
                             "tinggi"
                               ? "destructive"
-                              : analyticsData.ai_analysis.analisis_risiko.tingkat_risiko.toLowerCase() ===
+                              : analyticsData?.ai_analysis?.analisis_risiko?.tingkat_risiko?.toLowerCase() ===
                                 "sedang"
                               ? "secondary"
                               : "outline"
                           }
                         >
                           Tingkat Risiko:{" "}
-                          {
-                            analyticsData.ai_analysis.analisis_risiko
-                              .tingkat_risiko
-                          }
+                          {analyticsData?.ai_analysis?.analisis_risiko?.tingkat_risiko || "Tidak diketahui"}
                         </Badge>
                       </div>
                       <p className="text-gray-700">
-                        {analyticsData.ai_analysis.analisis_risiko.detail}
+                        {analyticsData?.ai_analysis?.analisis_risiko?.detail || "Tidak ada detail risiko tersedia."}
                       </p>
                     </div>
                   </div>
@@ -583,25 +580,19 @@ function CrimeDashboardContent() {
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <h4 className="font-medium mb-2">Tren</h4>
                         <p className="text-gray-700">
-                          {analyticsData.ai_analysis.pola_kriminalitas.tren}
+                          {analyticsData?.ai_analysis?.pola_kriminalitas?.tren || "Tidak ada data tren."}
                         </p>
                       </div>
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <h4 className="font-medium mb-2">Waktu Rawan</h4>
                         <p className="text-gray-700">
-                          {
-                            analyticsData.ai_analysis.pola_kriminalitas
-                              .waktu_rawan
-                          }
+                          {analyticsData?.ai_analysis?.pola_kriminalitas?.waktu_rawan || "Tidak ada data waktu rawan."}
                         </p>
                       </div>
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <h4 className="font-medium mb-2">Area Rawan</h4>
                         <p className="text-gray-700">
-                          {
-                            analyticsData.ai_analysis.pola_kriminalitas
-                              .area_rawan
-                          }
+                          {analyticsData?.ai_analysis?.pola_kriminalitas?.area_rawan || "Tidak ada data area rawan."}
                         </p>
                       </div>
                     </div>
@@ -616,7 +607,7 @@ function CrimeDashboardContent() {
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <h4 className="font-medium mb-2">Dampak Langsung</h4>
                         <p className="text-gray-700">
-                          {analyticsData.ai_analysis.dampak_bisnis.langsung}
+                          {analyticsData?.ai_analysis?.dampak_bisnis?.langsung || "Tidak ada data dampak langsung."}
                         </p>
                       </div>
                       <div className="bg-gray-50 p-4 rounded-lg">
@@ -624,10 +615,7 @@ function CrimeDashboardContent() {
                           Dampak Tidak Langsung
                         </h4>
                         <p className="text-gray-700">
-                          {
-                            analyticsData.ai_analysis.dampak_bisnis
-                              .tidak_langsung
-                          }
+                          {analyticsData?.ai_analysis?.dampak_bisnis?.tidak_langsung || "Tidak ada data dampak tidak langsung."}
                         </p>
                       </div>
                     </div>
@@ -638,7 +626,7 @@ function CrimeDashboardContent() {
                     <h3 className="text-md font-semibold mb-2">Kesimpulan</h3>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <p className="text-gray-700">
-                        {analyticsData.ai_analysis.kesimpulan}
+                        {analyticsData?.ai_analysis?.kesimpulan || "Tidak ada kesimpulan tersedia."}
                       </p>
                     </div>
                   </div>
@@ -654,14 +642,20 @@ function CrimeDashboardContent() {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  {analyticsData.recommendations.map(
-                    (recommendation, index) => (
-                      <li key={index} className="flex items-start">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                        <span className="text-gray-700">{recommendation}</span>
-                      </li>
-                    )
-                  )}
+                  {analyticsData?.recommendations && Array.isArray(analyticsData.recommendations) 
+                    ? analyticsData.recommendations.map(
+                        (recommendation, index) => (
+                          <li key={index} className="flex items-start">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                            <span className="text-gray-700">{recommendation}</span>
+                          </li>
+                        )
+                      )
+                    : (
+                        <li className="text-gray-500 italic">
+                          Tidak ada rekomendasi tersedia.
+                        </li>
+                      )}
                 </ul>
               </CardContent>
             </Card>
@@ -680,8 +674,8 @@ function CrimeDashboardContent() {
                 }
               >
                 <ChatbotInterface
-                  mapid={analyticsData.manager_info.mapid}
-                  locationName={analyticsData.manager_info.organization}
+                  mapid={analyticsData?.manager_info?.mapid}
+                  locationName={analyticsData?.manager_info?.organization}
                   className="h-full min-h-[500px]"
                 />
               </Suspense>
